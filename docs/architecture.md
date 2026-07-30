@@ -63,5 +63,21 @@ flowchart TD
   current session’s articles are not recoverable after reload.
 - Public-fetch and sanitization changes affect both external-request safety and
   content rendering; review them together.
-- There is no automated test suite in the repository. `Unknown / verify` for
-  regression coverage around parsers, sanitization, and route validation.
+- Focused library tests cover encoding and PWA helpers; `Unknown / verify` for
+  broader mounted UI and browser regression coverage.
+
+## Progressive web app boundary
+
+The browser client registers `public/sw.js` only in production. The worker
+uses a bounded network-first document cache for `/` and `/reader`, a bounded
+cache-first strategy for same-origin Next static assets and images, and never
+caches `/api/*`, auth, or cross-origin responses. It does not make the current
+in-memory article session available offline; offline support is limited to the
+cached application shell and previously visited documents/assets.
+
+`src/components/pwa-provider.tsx` owns install-event lifecycle, standalone and
+WebView classification, dismissal/recovery timestamps, and browser handoff.
+The reader toolbar provides a persistent install action after the transient
+promotion is dismissed. iOS uses manual Safari instructions, while likely
+Android WebViews receive an intent URL with an HTTPS fallback and a selectable
+copy link. The host application may still block external-browser navigation.

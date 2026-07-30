@@ -43,6 +43,10 @@
     {
       "en": "Article lists and extracted article HTML are memory-only.",
       "ar": "Article lists and extracted article HTML are memory-only."
+    },
+    {
+      "en": "Installable PWA experience with production-only shell caching, Android/iOS install guidance, and embedded-browser fallbacks.",
+      "ar": "Installable PWA experience with production-only shell caching, Android/iOS install guidance, and embedded-browser fallbacks."
     }
   ],
   "progress": {
@@ -51,8 +55,8 @@
   },
   "issues": [
     {
-      "en": "No test command is declared in package.json.",
-      "ar": "No test command is declared in package.json."
+      "en": "The declared test command covers focused library tests; broader UI and device coverage remains limited.",
+      "ar": "The declared test command covers focused library tests; broader UI and device coverage remains limited."
     },
     {
       "en": "No conventional test directory was detected.",

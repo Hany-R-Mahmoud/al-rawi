@@ -41,8 +41,8 @@ npx tsc --noEmit
 npm run build
 ```
 
-No automated test command is currently declared. Report that limitation rather
-than inventing a test command.
+The declared test command covers focused library tests. Report the absence of
+broader mounted UI and real-device coverage rather than inventing it.
 
 ## Rules
 

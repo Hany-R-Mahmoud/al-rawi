@@ -29,8 +29,8 @@ npx tsc --noEmit
 npm run build
 ```
 
-There is no declared test command or conventional test directory. Report that
-fact when behavior changes are made without automated test coverage.
+The declared test command covers focused library tests; there is no conventional
+test directory. Report remaining mounted UI and device coverage gaps.
 
 ## Repository conventions
 

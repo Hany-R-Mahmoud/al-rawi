@@ -6,6 +6,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/components/language-provider";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { AppToaster } from "@/components/app-toaster";
+import { PwaInstallHelpDialog } from "@/components/pwa-install-help-dialog";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
+import { PwaProvider } from "@/components/pwa-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -60,6 +63,13 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Al-Rawi",
   },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport = {
@@ -70,6 +80,7 @@ export const viewport = {
 };
 
 const languageInitScript = `(() => { try { const language = localStorage.getItem("al-rawi-language"); if (language === "ar") { document.documentElement.lang = "ar"; document.documentElement.dir = "rtl"; } } catch {} })()`;
+const pwaHashInitScript = `(() => { try { const url = new URL(window.location.href); const hash = url.searchParams.get("__pwa_hash"); if (hash) { url.searchParams.delete("__pwa_hash"); url.hash = hash.startsWith("#") ? hash : "#" + hash; window.history.replaceState(null, "", url.pathname + url.search + url.hash); } } catch {} })()`;
 
 export default function RootLayout({
   children,
@@ -85,6 +96,7 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: languageInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: pwaHashInitScript }} />
         {process.env.NODE_ENV === "development" && (
           <Script src="https://unpkg.com/react-scan/dist/auto.global.js" crossOrigin="anonymous" strategy="afterInteractive" />
         )}
@@ -98,8 +110,12 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <LanguageProvider>
-          <ThemeProvider>
+        <ThemeProvider>
+          <PwaProvider>
+            <PwaInstallPrompt />
+            <PwaInstallHelpDialog />
             <ErrorBoundary>{children}</ErrorBoundary>
+          </PwaProvider>
             <AppToaster />
             {process.env.VERCEL && <Analytics />}
           </ThemeProvider>

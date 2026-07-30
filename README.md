@@ -24,7 +24,7 @@ Open the local URL printed by Next.js, usually `http://localhost:3000`.
 | `npm run start` | Serve a completed production build. |
 | `npm run doctor` | Run the optional React Doctor check. |
 
-There is no test script or conventional test directory in the current repo.
+The test script covers focused library tests; there is no conventional test directory.
 
 ## What is implemented
 
@@ -38,6 +38,8 @@ There is no test script or conventional test directory in the current repo.
 - Supplied Al-Rawi brand artwork, including a dark-mode contrast variant, is used
   in the app chrome, favicon/app icons, social-share previews, and Vercel Web
   Analytics integration.
+- Installable PWA experience with production-only shell caching, Android/iOS
+  install guidance, dismissal recovery, and embedded-browser fallbacks.
 
 The app has no account system, database, environment-variable contract, cron
 worker, or server-side feed store. The older implementation brief in
