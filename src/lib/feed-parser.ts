@@ -58,9 +58,9 @@ export async function parseFeed(url: string, rawXml?: string): Promise<ParsedFee
   let result: Parser.Output<CustomItem>;
 
   if (rawXml) {
-    // Normalize encoding before parsing
-    const normalizedXml = normalizeEncoding(Buffer.from(rawXml, "utf-8"));
-    result = await parser.parseString(normalizedXml);
+    // rawXml is already a JavaScript string, so decoding it again can only
+    // risk changing its contents.
+    result = await parser.parseString(rawXml);
   } else {
     // Fetch with encoding detection
     const response = await fetch(url, {

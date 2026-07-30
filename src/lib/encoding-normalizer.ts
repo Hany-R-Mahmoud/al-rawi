@@ -13,9 +13,16 @@ export function normalizeEncoding(
     return body;
   }
 
-  const encoding = normalizeEncodingName(detectedEncoding);
+  const encoding =
+    normalizeEncodingName(detectedEncoding) ?? detectXmlEncoding(body);
 
-  if (encoding && encoding !== "utf-8" && iconv.encodingExists(encoding)) {
+  // UTF-8 is the safest default for feeds. In particular, do not decode
+  // valid UTF-8 bytes as Windows-1256: the result can still contain Arabic
+  // code points, so checking only for Arabic characters cannot detect that
+  // corruption.
+  if (encoding === "utf-8") return body.toString("utf-8");
+
+  if (encoding && iconv.encodingExists(encoding)) {
     try {
       const decoded = iconv.decode(body, encoding);
       return decoded;
@@ -24,13 +31,16 @@ export function normalizeEncoding(
     }
   }
 
-  // If encoding is unknown, try common Arabic encodings
+  // With no reliable declared encoding, prefer a byte-valid UTF-8 decode.
+  const asUtf8 = body.toString("utf-8");
+  if (isValidUtf8(body)) return asUtf8;
+
+  // The remaining candidates are for genuinely legacy feeds.
   for (const enc of ["win1256", "ISO-8859-6", "utf-8"]) {
     try {
       if (iconv.encodingExists(enc)) {
         const decoded = iconv.decode(body, enc as iconv.Encoding);
-        // Check if the result has valid Arabic characters
-        if (hasArabicChars(decoded)) return decoded;
+        if (enc === "utf-8" || hasArabicChars(decoded)) return decoded;
       }
     } catch {
       continue;
@@ -38,23 +48,37 @@ export function normalizeEncoding(
   }
 
   // Last resort: treat buffer as UTF-8
-  return body.toString("utf-8");
+  return asUtf8;
 }
 
 function normalizeEncodingName(encoding?: string | null): string | null {
   if (!encoding) return null;
   const lower = encoding.toLowerCase().replace(/[^a-z0-9]/g, "");
   const map: Record<string, string> = {
+    utf8: "utf-8",
+    unicode11utf8: "utf-8",
+    usascii: "utf-8",
     win1256: "win1256",
     windows1256: "win1256",
-    "windows-1256": "win1256",
     cp1256: "win1256",
     iso88596: "ISO-8859-6",
-    "iso-8859-6": "ISO-8859-6",
     arabic: "win1256",
-    "iso-8859-6i": "ISO-8859-6",
+    iso88596i: "ISO-8859-6",
   };
   return map[lower] || null;
+}
+
+function detectXmlEncoding(body: Buffer): string | null {
+  // The XML declaration is ASCII-compatible, so inspecting the initial
+  // bytes is safe before choosing a decoder.
+  const prefix = body.subarray(0, 512).toString("ascii");
+  const match = prefix.match(/<\?xml[^>]*encoding\s*=\s*["']([^"']+)["']/i);
+  return normalizeEncodingName(match?.[1]);
+}
+
+function isValidUtf8(body: Buffer): boolean {
+  const decoded = body.toString("utf-8");
+  return Buffer.from(decoded, "utf-8").equals(body);
 }
 
 function hasArabicChars(text: string): boolean {
