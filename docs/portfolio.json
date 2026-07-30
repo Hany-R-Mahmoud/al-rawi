@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "slug": "al-rawi",
+  "title": {
+    "en": "Al-Rawi",
+    "ar": "Al-Rawi"
+  },
+  "summary": {
+    "en": "Al-Rawi is a bilingual, local-first RSS reader. Feed subscriptions and preferences stay in the browser; fresh articles are fetched into memory and discarded when the session ends.",
+    "ar": "Al-Rawi is a bilingual, local-first RSS reader. Feed subscriptions and preferences stay in the browser; fresh articles are fetched into memory and discarded when the session ends."
+  },
+  "status": "showcase",
+  "portfolio": true,
+  "category": "Web",
+  "tech_stack": [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Tailwind",
+    "Vercel Web Analytics"
+  ],
+  "features": [
+    {
+      "en": "Next.js App Router, TypeScript, Tailwind CSS",
+      "ar": "Next.js App Router, TypeScript, Tailwind CSS"
+    },
+    {
+      "en": "LocalStorage for feed URLs, categories, and OPML-compatible subscriptions",
+      "ar": "LocalStorage for feed URLs, categories, and OPML-compatible subscriptions"
+    },
+    {
+      "en": "Stateless Next.js routes for public RSS and article extraction",
+      "ar": "Stateless Next.js routes for public RSS and article extraction"
+    },
+    {
+      "en": "`rss-parser`, `iconv-lite`, `@mozilla/readability`, and `jsdom`",
+      "ar": "`rss-parser`, `iconv-lite`, `@mozilla/readability`, and `jsdom`"
+    },
+    {
+      "en": "Only feed subscriptions are persisted locally.",
+      "ar": "Only feed subscriptions are persisted locally."
+    },
+    {
+      "en": "Article lists and extracted article HTML are memory-only.",
+      "ar": "Article lists and extracted article HTML are memory-only."
+    }
+  ],
+  "progress": {
+    "en": "Classified as showcase-ready by Apex Yard; this snapshot reflects the current repository evidence.",
+    "ar": "Classified as showcase-ready by Apex Yard; this snapshot reflects the current repository evidence."
+  },
+  "issues": [
+    {
+      "en": "No test command is declared in package.json.",
+      "ar": "No test command is declared in package.json."
+    },
+    {
+      "en": "No conventional test directory was detected.",
+      "ar": "No conventional test directory was detected."
+    },
+    {
+      "en": "The read-later queue and IndexedDB offline cache described in the original brief are not implemented in the current source.",
+      "ar": "The read-later queue and IndexedDB offline cache described in the original brief are not implemented in the current source."
+    },
+    {
+      "en": "No GitHub remote is configured; updates remain local.",
+      "ar": "No GitHub remote is configured; updates remain local."
+    }
+  ],
+  "suggestions": [
+    {
+      "en": "Add a focused automated test command for the highest-risk behavior.",
+      "ar": "Add a focused automated test command for the highest-risk behavior."
+    },
+    {
+      "en": "Add reviewed screenshots and a fuller case study when visual evidence is available.",
+      "ar": "Add reviewed screenshots and a fuller case study when visual evidence is available."
+    }
+  ],
+  "commands": {
+    "install": "npm install",
+    "dev": "npm run dev",
+    "build": "npm run build",
+    "lint": "npm run lint"
+  },
+  "repository": {
+    "branch": "master",
+    "sync": "local-only"
+  },
+  "source": {
+    "workspace": "workspace/al-rawi",
+    "last_reviewed": "2026-07-30"
+  }
+}
