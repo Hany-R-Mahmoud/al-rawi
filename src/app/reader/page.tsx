@@ -10,6 +10,7 @@ import { FeedList } from "@/components/feed-list";
 import { ReaderPane } from "@/components/reader-pane";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { PwaInstallMenuAction } from "@/components/pwa-install-menu-action";
+import { MobileBottomNav, type MobileNavSection } from "@/components/mobile-bottom-nav";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -164,6 +165,13 @@ export default function Home() {
 
   const selectedArticle = visibleArticles.find((article) => article.id === selectedArticleId) || null;
   const selectedArticleUrl = selectedArticle?.url;
+  const mobileActiveSection: MobileNavSection = showSettings
+    ? "settings"
+    : showMobileNav
+      ? "feeds"
+      : showSearch
+        ? "search"
+        : "articles";
 
   useEffect(() => {
     if (!selectedArticleId || !selectedArticleUrl) return;
@@ -271,14 +279,23 @@ export default function Home() {
           </header>
           {showSearch && <div className="border-b border-border px-3 py-2"><div className="relative"><Search className={`absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-faint ${language === "ar" ? "right-2.5" : "left-2.5"}`} /><Input autoFocus placeholder={t("searchPlaceholder")} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className={`h-8 text-xs ${language === "ar" ? "pr-8 pl-2.5" : "pl-8 pr-2.5"}`} /><button type="button" className={`absolute top-1/2 -translate-y-1/2 ${language === "ar" ? "left-2" : "right-2"}`} onClick={() => { setSearchQuery(""); setShowSearch(false); }} aria-label={t("closeSearch")}><X className="h-3 w-3 text-ink-faint" /></button></div></div>}
           <div className="flex items-center justify-between border-b border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-ink-faint"><span>{selectedFeedId ? feeds.find((feed) => feed.id === selectedFeedId)?.title : t("allArticles")}</span><span>{visibleArticles.length}</span></div>
-          {loading ? <div className="flex flex-1 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-ink-faint" /></div> : <ArticleList articles={visibleArticles} selectedArticleId={selectedArticleId} onSelectArticle={selectArticle} onToggleRead={markRead} />}
-          {error && <p className="border-t border-border p-3 text-xs text-destructive">{error}</p>}
-          <div className="hidden border-t border-border px-3 py-1.5 text-center font-mono text-[10px] text-ink-faint lg:block">{t("keyboardHelp")}</div>
+          <div className="flex min-h-0 flex-1 flex-col pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:pb-0">
+            {loading ? <div className="flex flex-1 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-ink-faint" /></div> : <ArticleList articles={visibleArticles} selectedArticleId={selectedArticleId} onSelectArticle={selectArticle} onToggleRead={markRead} />}
+            {error && <p className="border-t border-border p-3 text-xs text-destructive">{error}</p>}
+            <div className="hidden border-t border-border px-3 py-1.5 text-center font-mono text-[10px] text-ink-faint lg:block">{t("keyboardHelp")}</div>
+          </div>
         </div>
         <main className="hidden min-w-0 flex-1 bg-paper-raised lg:flex lg:flex-col"><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => selectedArticle?.url && window.open(selectedArticle.url, "_blank", "noopener,noreferrer")} onMarkRead={() => selectedArticle && markRead(selectedArticle.id)} /></main>
-        {selectedArticle && <main className="flex min-w-0 flex-1 flex-col bg-paper-raised lg:hidden"><div className="border-b border-border px-3 py-2"><Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => setSelectedArticleId(null)}>{language === "ar" ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}{t("backToArticles")}</Button></div><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => selectedArticle.url && window.open(selectedArticle.url, "_blank", "noopener,noreferrer")} onMarkRead={() => markRead(selectedArticle.id)} /></main>}
+        {selectedArticle && <main className="flex min-w-0 flex-1 flex-col bg-paper-raised pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:hidden"><div className="border-b border-border px-3 py-2"><Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => setSelectedArticleId(null)}>{language === "ar" ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}{t("backToArticles")}</Button></div><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => selectedArticle.url && window.open(selectedArticle.url, "_blank", "noopener,noreferrer")} onMarkRead={() => markRead(selectedArticle.id)} /></main>}
       </section>
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} />
+      <MobileBottomNav
+        activeSection={mobileActiveSection}
+        onOpenFeeds={() => { setSelectedArticleId(null); setShowSearch(false); setShowMobileNav(true); }}
+        onOpenArticles={() => { setSelectedArticleId(null); setShowMobileNav(false); }}
+        onOpenSearch={() => { setSelectedArticleId(null); setShowMobileNav(false); setShowSearch(true); }}
+        onOpenSettings={() => { setShowMobileNav(false); setShowSettings(true); }}
+      />
       {refreshing && <div className="pointer-events-none fixed bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border border-border bg-paper-raised px-3 py-1.5 text-xs text-ink-subtle shadow-sm"><Rss className="me-1 inline h-3 w-3 animate-pulse" />{t("refreshingFreshArticles")}</div>}
     </div>
   );

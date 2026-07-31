@@ -39,6 +39,11 @@ The existing warm OKLCH tokens in `src/app/globals.css` are the source of truth:
 - States: closed, open, importing, import error, imported.
 - Accessibility: labeled controls, status messages, keyboard-reachable file import/export.
 
+### Mobile bottom navigation
+- Visible below `lg` with Feeds, Articles, Search, and Settings actions.
+- Uses a tonal paper surface, thin semantic border, visible pressed state, and safe-area padding for embedded mobile browsers.
+- Accessibility: semantic navigation landmark, labeled buttons, pressed-state announcement, and visible keyboard focus.
+
 ## 6. Motion & Interaction
 
 Existing transitions use short ease-out opacity/transform changes. Respect reduced motion. Do not animate layout dimensions.
