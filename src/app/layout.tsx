@@ -34,8 +34,14 @@ const naskh = Noto_Naskh_Arabic({
   weight: ["400", "700"],
 });
 
+const configuredSiteUrl =
+  process.env.SITE_URL ??
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+  process.env.VERCEL_URL ??
+  "https://al-rawi-rss.vercel.app";
 const metadataBase = new URL(
-  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
+  configuredSiteUrl.startsWith("http") ? configuredSiteUrl : `https://${configuredSiteUrl}`,
 );
 
 const socialImage = {
@@ -51,10 +57,12 @@ export const metadata: Metadata = {
   title: "Al-Rawi",
   description:
     "A calm bilingual RSS reader with RTL support and distraction-free reading.",
+  alternates: { canonical: "/" },
   applicationName: "Al-Rawi",
   manifest: "/manifest.json",
   openGraph: {
     type: "website",
+    url: "/",
     title: "Al-Rawi",
     description:
       "A calm bilingual RSS reader with RTL support and distraction-free reading.",
