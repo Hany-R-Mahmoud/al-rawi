@@ -38,6 +38,14 @@ const metadataBase = new URL(
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"
 );
 
+const socialImage = {
+  url: "/social-card.png",
+  type: "image/png",
+  width: 1200,
+  height: 630,
+  alt: "Al-Rawi — a calm bilingual reading space",
+};
+
 export const metadata: Metadata = {
   metadataBase,
   title: "Al-Rawi",
@@ -51,12 +59,14 @@ export const metadata: Metadata = {
     description:
       "A calm bilingual RSS reader with RTL support and distraction-free reading.",
     siteName: "Al-Rawi",
+    images: [socialImage],
   },
   twitter: {
     card: "summary_large_image",
     title: "Al-Rawi",
     description:
       "A calm bilingual RSS reader with RTL support and distraction-free reading.",
+    images: [socialImage],
   },
   appleWebApp: {
     capable: true,
