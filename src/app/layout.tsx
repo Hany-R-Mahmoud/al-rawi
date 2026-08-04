@@ -9,6 +9,7 @@ import { AppToaster } from "@/components/app-toaster";
 import { PwaInstallHelpDialog } from "@/components/pwa-install-help-dialog";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { PwaProvider } from "@/components/pwa-provider";
+import StandaloneVisitorCounter from "@/components/StandaloneVisitorCounter";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -133,6 +134,7 @@ export default function RootLayout({
             <PwaInstallPrompt />
             <PwaInstallHelpDialog />
             <ErrorBoundary>{children}</ErrorBoundary>
+            <StandaloneVisitorCounter />
           </PwaProvider>
             <AppToaster />
             {process.env.VERCEL && <Analytics />}
