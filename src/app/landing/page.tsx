@@ -7,6 +7,7 @@ import { useTheme } from "next-themes";
 import { BrandLogo } from "@/components/brand-logo";
 import { LandingOrbitalHero } from "@/components/landing-orbital-hero";
 import { useLanguage } from "@/components/language-provider";
+import StandaloneVisitorCounter from "@/components/StandaloneVisitorCounter";
 
 const features = [
   { icon: RefreshCw, title: "landingFreshTitle" as const, description: "landingFreshDescription" as const },
@@ -109,7 +110,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-border px-5 py-5 sm:px-8 lg:px-10"><div className="mx-auto flex max-w-7xl items-center justify-between font-mono text-[9px] uppercase tracking-[0.18em] text-ink-faint"><span>Al-Rawi</span><span>{t("landingFooterNote")}</span></div></footer>
+      <footer className="border-t border-border px-5 py-5 sm:px-8 lg:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 font-mono text-[9px] uppercase tracking-[0.18em] text-ink-faint">
+          <span>Al-Rawi</span><span>{t("landingFooterNote")}</span>
+        </div>
+        <StandaloneVisitorCounter />
+      </footer>
     </main>
   );
 }
