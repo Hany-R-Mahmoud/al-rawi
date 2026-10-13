@@ -1,0 +1,65 @@
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'com.android.application'
+
+// Public (non-secret) OAuth Android client ID, supplied ONLY at build time.
+def rawGoogleClientId = System.getenv('ALRAWI_GOOGLE_ANDROID_CLIENT_ID') ?: ''
+def googleClientValid = rawGoogleClientId ==~ /[A-Za-z0-9-]+[.]apps[.]googleusercontent[.]com/
+def googleScheme = googleClientValid ? 'com.googleusercontent.apps.' + rawGoogleClientId.split('[.]')[0] : 'com.hany.alrawi.unconfigured'
+
+
+android {
+    namespace = "com.hany.alrawi"
+    compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures { buildConfig = true }
+    defaultConfig {
+        manifestPlaceholders = [appAuthRedirectScheme: googleScheme]
+        buildConfigField 'String', 'GOOGLE_ANDROID_CLIENT_ID', '"' + (googleClientValid ? rawGoogleClientId : '') + '"'
+        applicationId "com.hany.alrawi"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation 'net.openid:appauth:0.11.1'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

@@ -6,8 +6,8 @@
     "ar": "Al-Rawi"
   },
   "summary": {
-    "en": "Al-Rawi is a bilingual, local-first RSS reader. Feed subscriptions and preferences stay in the browser; fresh articles are fetched into memory and discarded when the session ends.",
-    "ar": "Al-Rawi is a bilingual, local-first RSS reader. Feed subscriptions and preferences stay in the browser; fresh articles are fetched into memory and discarded when the session ends."
+    "en": "Al-Rawi is a bilingual local-first RSS reader extended on a feature branch with an Android notification inbox and local Google-source import; device verification pending.",
+    "ar": "الراوي قارئ RSS ثنائي اللغة مع تحديث لصندوق إشعارات أندرويد واستيراد مصادر جوجل محليًا؛ اختبار الجهاز معلّق."
   },
   "status": "showcase",
   "portfolio": true,
@@ -17,7 +17,11 @@
     "React",
     "TypeScript",
     "Tailwind",
-    "Vercel Web Analytics"
+    "Vercel Web Analytics",
+    "Capacitor",
+    "Kotlin",
+    "Android SQLite",
+    "IndexedDB"
   ],
   "features": [
     {
@@ -47,11 +51,19 @@
     {
       "en": "Installable PWA experience with production-only shell caching, Android/iOS install guidance, and embedded-browser fallbacks.",
       "ar": "Installable PWA experience with production-only shell caching, Android/iOS install guidance, and embedded-browser fallbacks."
+    },
+    {
+      "en": "Feature branch: Kotlin Android notification listener and SQLite archive, plus persistent IndexedDB inbox entries.",
+      "ar": "فرع تطوير: مستمع إشعارات أندرويد وأرشيف SQLite وعناصر وارد IndexedDB."
+    },
+    {
+      "en": "Feature branch: Gmail label and YouTube subscription import via real Google OAuth and native token encryption.",
+      "ar": "فرع تطوير: استيراد تصنيفات جيميل واشتراكات يوتيوب عبر OAuth حقيقي مع تشفير الرموز."
     }
   ],
   "progress": {
-    "en": "Classified as showcase-ready by Apex Yard; this snapshot reflects the current repository evidence.",
-    "ar": "Classified as showcase-ready by Apex Yard; this snapshot reflects the current repository evidence."
+    "en": "Revival feature branch implementation; real device and Google account acceptance still pending.",
+    "ar": "تنفيذ تحديث الراوي على فرع تطوير؛ اختبار الجهاز وحسابات جوجل الحقيقية ما زال معلّقًا."
   },
   "issues": [
     {
@@ -63,12 +75,8 @@
       "ar": "No conventional test directory was detected."
     },
     {
-      "en": "The read-later queue and IndexedDB offline cache described in the original brief are not implemented in the current source.",
-      "ar": "The read-later queue and IndexedDB offline cache described in the original brief are not implemented in the current source."
-    },
-    {
-      "en": "No GitHub remote is configured; updates remain local.",
-      "ar": "No GitHub remote is configured; updates remain local."
+      "en": "Revival requires physical Android listener and real Google OAuth acceptance tests before release.",
+      "ar": "يتطلب التحديث اختبارات التقاط إشعارات أندرويد وOAuth الحقيقي قبل الإطلاق."
     }
   ],
   "suggestions": [
@@ -85,14 +93,16 @@
     "install": "npm install",
     "dev": "npm run dev",
     "build": "npm run build",
-    "lint": "npm run lint"
+    "lint": "npm run lint",
+    "test": "npm test",
+    "android": "npm run build:capacitor"
   },
   "repository": {
-    "branch": "master",
-    "sync": "local-only"
+    "branch": "main",
+    "sync": "GitHub"
   },
   "source": {
     "workspace": "workspace/al-rawi",
-    "last_reviewed": "2026-07-30"
+    "last_reviewed": "2026-10-14"
   }
 }

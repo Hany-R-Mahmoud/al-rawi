@@ -75,3 +75,17 @@ offline cache.
 - Status: showcase
 - Category: Web
 - Source of truth: [`docs/portfolio.json`](docs/portfolio.json)
+
+## Revival feature branch: Android notification inbox
+
+This implementation adds an Inbox for Android notifications and durable RSS,
+Gmail, and YouTube source items, preserving the paper/ink theme and EN/AR/RTL
+reader. Android notifications are captured by a native Kotlin listener and
+written directly to on-device SQLite, rather than depending on the WebView
+being open. Web-sourced items are kept in local IndexedDB. Google sources
+require real OAuth credentials; no mock integrations are used.
+
+Use npm run build:capacitor to build and sync the Android native project;
+npm run build remains the Next.js web/PWA build. Build prerequisites, Google
+setup and device tests (pending before release) are documented at
+[Revival verification](docs/revival-verification.md).

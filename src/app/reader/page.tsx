@@ -2,10 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "next-themes";
-import { ArrowLeft, ArrowRight, Loader2, Menu, Moon, Rss, Search, Settings2, Sun, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Inbox, Loader2, Menu, Moon, Rss, Search, Settings2, Sun, X } from "lucide-react";
 import { toast } from "sonner";
 import { ArticleList } from "@/components/article-list";
 import { BrandLogo } from "@/components/brand-logo";
+import { InboxPane } from "@/components/inbox-pane";
+import { CaptureOnboarding } from "@/components/capture-onboarding";
+import { upsertInboxItems, rssInboxItems } from "@/lib/inbox-store";
 import { FeedList } from "@/components/feed-list";
 import { ReaderPane } from "@/components/reader-pane";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -20,6 +23,8 @@ import { readLocalReaderState, makeFeedId, writeLocalReaderState } from "@/lib/l
 import type { ParsedFeed } from "@/lib/feed-parser";
 import type { Article, ReaderFeed, StoredFeed } from "@/lib/reader-types";
 import { translate, type Language, type TranslationKey } from "@/lib/i18n";
+import { apiUrl } from "@/lib/api-base";
+import { openExternalUrl } from "@/lib/open-url";
 
 type ParsedFeedPayload = ParsedFeed;
 
@@ -41,7 +46,7 @@ function feedFromStored(feed: StoredFeed): ReaderFeed {
 }
 
 async function fetchFeed(feed: ReaderFeed, language: Language): Promise<{ feed: ReaderFeed; articles: Article[] }> {
-  const response = await fetch(`/api/feed?url=${encodeURIComponent(feed.url)}`, { cache: "no-store" });
+  const response = await fetch(apiUrl(`/api/feed?url=${encodeURIComponent(feed.url)}`), { cache: "no-store" });
   if (!response.ok) {
     const payload: unknown = await response.json();
     const message = payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string" ? payload.error : translate(language, "couldNotFetchFeed");
@@ -85,6 +90,7 @@ export default function Home() {
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showInbox, setShowInbox] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -119,6 +125,8 @@ export default function Home() {
       const successes = results.filter((item): item is { source: ReaderFeed; result: { feed: ReaderFeed; articles: Article[] } } => "result" in item);
       const failures = results.filter((item): item is { source: ReaderFeed; error: string } => "error" in item);
       const nextArticles = successes.flatMap((item) => item.result.articles);
+      // Inbox is durable; reader panes keep their existing in-memory behavior.
+      void upsertInboxItems(rssInboxItems(nextArticles)).catch(() => {});
       setArticles((current) => {
         const targetIds = new Set(targets.map((feed) => feed.id));
         return [...current.filter((article) => !targetIds.has(article.feedId)), ...nextArticles].sort(sortArticles);
@@ -167,7 +175,9 @@ export default function Home() {
   const selectedArticleUrl = selectedArticle?.url;
   const mobileActiveSection: MobileNavSection = showSettings
     ? "settings"
-    : showMobileNav
+    : showInbox
+      ? "inbox"
+      : showMobileNav
       ? "feeds"
       : showSearch
         ? "search"
@@ -176,7 +186,7 @@ export default function Home() {
   useEffect(() => {
     if (!selectedArticleId || !selectedArticleUrl) return;
     const controller = new AbortController();
-    fetch("/api/articles/extract", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: selectedArticleUrl }), signal: controller.signal })
+    fetch(apiUrl("/api/articles/extract"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: selectedArticleUrl }), signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) {
           const payload: unknown = await response.json();
@@ -249,7 +259,7 @@ export default function Home() {
   useKeyboardNav({
     onNext: () => navigate(1),
     onPrev: () => navigate(-1),
-    onOpen: () => selectedArticle?.url && window.open(selectedArticle.url, "_blank", "noopener,noreferrer"),
+    onOpen: () => { if (selectedArticle?.url) void openExternalUrl(selectedArticle.url); },
     onMarkRead: () => selectedArticle && markRead(selectedArticle.id),
     onSearch: () => setShowSearch((current) => !current),
     onRefresh: () => void refreshFeeds(selectedFeedId ? feeds.filter((feed) => feed.id === selectedFeedId) : feeds),
@@ -267,6 +277,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-[100dvh] h-auto overflow-visible bg-paper text-ink pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:h-[100dvh] lg:overflow-hidden lg:pb-0">
+      {showInbox ? <InboxPane onBack={() => setShowInbox(false)} /> : <>
       {showMobileNav && <button type="button" className="fixed inset-0 z-40 bg-black/40 lg:hidden" aria-label={t("closeFeeds")} onClick={() => setShowMobileNav(false)} />}
       <aside className={`fixed inset-y-0 z-50 w-72 bg-paper transition-transform lg:static lg:translate-x-0 ${language === "ar" ? "right-0 border-l border-border" : "left-0 border-r border-border"} ${showMobileNav ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"}`}>
         <FeedList feeds={feeds} selectedFeedId={selectedFeedId} onSelectFeed={(id) => { setSelectedFeedId(id); setShowMobileNav(false); }} onRefresh={() => void refreshFeeds(selectedFeedId ? feeds.filter((feed) => feed.id === selectedFeedId) : feeds)} onDeleteFeed={deleteFeed} onAddFeed={addFeed} onAddCatalogFeeds={addCatalogFeeds} />
@@ -274,7 +285,7 @@ export default function Home() {
       <section className="flex min-w-0 flex-1 flex-col lg:flex-row">
         <div className={`min-w-0 flex-1 flex-col lg:flex lg:w-[380px] lg:flex-none ${language === "ar" ? "border-l border-border" : "border-r border-border"} ${selectedArticle ? "hidden" : "flex"}`}>
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-paper/95 px-3 py-2.5 backdrop-blur-md">
-            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setShowMobileNav(true)} aria-label={t("openFeeds")}><Menu className="h-4 w-4" /></Button><BrandLogo className="h-16 w-16" /></div>
+            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setShowMobileNav(true)} aria-label={t("openFeeds")}><Menu className="h-4 w-4" /></Button><BrandLogo className="h-16 w-16" /><Button variant="ghost" size="sm" className="hidden gap-1 lg:inline-flex" onClick={() => setShowInbox(true)}><Inbox className="h-4 w-4" />{t("inbox")}</Button></div>
             <div className="flex items-center gap-0.5"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowSearch((current) => !current)} aria-label={t("search")}><Search className="h-4 w-4" /></Button><div className="hidden items-center gap-0.5 sm:flex"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label={t("toggleTheme")}>{themeReady && resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</Button><PwaInstallMenuAction /><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowSettings(true)} aria-label={t("settings")}><Settings2 className="h-4 w-4" /></Button></div></div>
           </header>
           {showSearch && <div className="border-b border-border px-3 py-2"><div className="relative"><Search className={`absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-faint ${language === "ar" ? "right-2.5" : "left-2.5"}`} /><Input autoFocus placeholder={t("searchPlaceholder")} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className={`h-8 text-xs ${language === "ar" ? "pr-8 pl-2.5" : "pl-8 pr-2.5"}`} /><button type="button" className={`absolute top-1/2 -translate-y-1/2 ${language === "ar" ? "left-2" : "right-2"}`} onClick={() => { setSearchQuery(""); setShowSearch(false); }} aria-label={t("closeSearch")}><X className="h-3 w-3 text-ink-faint" /></button></div></div>}
@@ -285,15 +296,18 @@ export default function Home() {
             <div className="hidden border-t border-border px-3 py-1.5 text-center font-mono text-[10px] text-ink-faint lg:block">{t("keyboardHelp")}</div>
           </div>
         </div>
-        <main className="hidden min-w-0 flex-1 bg-paper-raised lg:flex lg:flex-col"><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => selectedArticle?.url && window.open(selectedArticle.url, "_blank", "noopener,noreferrer")} onMarkRead={() => selectedArticle && markRead(selectedArticle.id)} /></main>
-        {selectedArticle && <main className="flex min-w-0 flex-1 flex-col bg-paper-raised pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:hidden"><div className="border-b border-border px-3 py-2"><Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => setSelectedArticleId(null)}>{language === "ar" ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}{t("backToArticles")}</Button></div><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => selectedArticle.url && window.open(selectedArticle.url, "_blank", "noopener,noreferrer")} onMarkRead={() => markRead(selectedArticle.id)} /></main>}
+        <main className="hidden min-w-0 flex-1 bg-paper-raised lg:flex lg:flex-col"><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => { if (selectedArticle?.url) void openExternalUrl(selectedArticle.url); }} onMarkRead={() => selectedArticle && markRead(selectedArticle.id)} /></main>
+        {selectedArticle && <main className="flex min-w-0 flex-1 flex-col bg-paper-raised pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:hidden"><div className="border-b border-border px-3 py-2"><Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => setSelectedArticleId(null)}>{language === "ar" ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}{t("backToArticles")}</Button></div><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => { if (selectedArticle.url) void openExternalUrl(selectedArticle.url); }} onMarkRead={() => markRead(selectedArticle.id)} /></main>}
       </section>
+      </>}
+      <CaptureOnboarding onEnable={() => setShowInbox(true)} />
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} />
       <MobileBottomNav
         activeSection={mobileActiveSection}
-        onOpenFeeds={() => { setSelectedArticleId(null); setShowSearch(false); setShowMobileNav(true); }}
-        onOpenArticles={() => { setSelectedArticleId(null); setShowMobileNav(false); }}
-        onOpenSearch={() => { setSelectedArticleId(null); setShowMobileNav(false); setShowSearch(true); }}
+        onOpenFeeds={() => { setShowInbox(false); setSelectedArticleId(null); setShowSearch(false); setShowMobileNav(true); }}
+        onOpenArticles={() => { setShowInbox(false); setSelectedArticleId(null); setShowMobileNav(false); }}
+        onOpenInbox={() => { setShowInbox(true); setShowMobileNav(false); }}
+        onOpenSearch={() => { setShowInbox(false); setSelectedArticleId(null); setShowMobileNav(false); setShowSearch(true); }}
         onOpenSettings={() => { setShowMobileNav(false); setShowSettings(true); }}
       />
       {refreshing && <div className="pointer-events-none fixed bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border border-border bg-paper-raised px-3 py-1.5 text-xs text-ink-subtle shadow-sm"><Rss className="me-1 inline h-3 w-3 animate-pulse" />{t("refreshingFreshArticles")}</div>}
