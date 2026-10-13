@@ -81,3 +81,24 @@ The reader toolbar provides a persistent install action after the transient
 promotion is dismissed. iOS uses manual Safari instructions, while likely
 Android WebViews receive an intent URL with an HTTPS fallback and a selectable
 copy link. The host application may still block external-browser navigation.
+
+## Revival extension — Android capture and unified Inbox
+
+The legacy reader pane and server API routes are unchanged. New Inbox
+navigation uses the existing paper/ink tokens and EN/AR i18n provider.
+The Android shell statically exports Next.js (without API routes temporarily)
+and retrieves RSS through the existing production backend using native
+CapacitorHttp, retaining the backend's public URL validation.
+
+Android's NotificationListenerService stores incoming notification metadata
+and text immediately in a SQLite archive. This does not require the React
+WebView to be open. The native Capacitor plugin allows pagination and
+status updates. RSS/Gmail/YouTube items use IndexedDB. The Inbox merges
+the two sources and persists triage decisions separately.
+
+Google login uses AppAuth with PKCE, separate read-only scopes for Gmail
+and YouTube, and Android Keystore AES-GCM storage. The bridge exposes
+approved Google API responses only, never the OAuth tokens. Android backup
+is disabled. OAuth config and physical-device acceptance are not assumed.
+
+See [Revival handoff](revival-verification.md).

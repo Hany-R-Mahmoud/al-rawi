@@ -1,5 +1,6 @@
 "use client";
 
+import { isNative } from "@/lib/native-notifications";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   buildAndroidIntentUrl,
@@ -60,7 +61,7 @@ export function PwaProvider({ children }: { children: ReactNode }) {
     const storage = getLocalStorage();
     const nextDismissedAt = storage ? readTimestamp(storage, PWA_STORAGE_KEYS.promotionDismissedAt, now) : sessionDismissedAt.current;
     const nextInstalledHintAt = storage ? readTimestamp(storage, PWA_STORAGE_KEYS.installedHintAt, now) : sessionInstalledHintAt.current;
-    setIsStandalone(isStandaloneEnvironment());
+    setIsStandalone(isNative() || isStandaloneEnvironment());
     setDismissedAt(nextDismissedAt);
     setInstalledHintAt(nextInstalledHintAt);
     setCurrentUrl(window.location.href);
@@ -111,7 +112,7 @@ export function PwaProvider({ children }: { children: ReactNode }) {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+    if (process.env.NODE_ENV === "production" && !isNative() && "serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(() => undefined);
     }
 

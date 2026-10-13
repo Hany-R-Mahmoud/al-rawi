@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
+const capacitorBuild = process.env.CAPACITOR_BUILD === "1";
+
 const nextConfig: NextConfig = {
+  ...(capacitorBuild ? { output: "export" as const, images: { unoptimized: true }, trailingSlash: true } : {}),
   async headers() {
     return [
       {

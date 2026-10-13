@@ -1,15 +1,16 @@
 "use client";
 
-import { List, Rss, Search, Settings2, type LucideIcon } from "lucide-react";
+import { Inbox, List, Rss, Search, Settings2, type LucideIcon } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 
-export type MobileNavSection = "feeds" | "articles" | "search" | "settings";
+export type MobileNavSection = "feeds" | "articles" | "inbox" | "search" | "settings";
 
 type MobileBottomNavProps = {
   activeSection: MobileNavSection;
   onOpenFeeds: () => void;
   onOpenArticles: () => void;
   onOpenSearch: () => void;
+  onOpenInbox: () => void;
   onOpenSettings: () => void;
 };
 
@@ -18,12 +19,14 @@ export function MobileBottomNav({
   onOpenFeeds,
   onOpenArticles,
   onOpenSearch,
+  onOpenInbox,
   onOpenSettings,
 }: MobileBottomNavProps) {
   const { t } = useLanguage();
   const items: Array<{ section: MobileNavSection; label: string; icon: LucideIcon; onSelect: () => void }> = [
     { section: "feeds", label: t("feeds"), icon: Rss, onSelect: onOpenFeeds },
     { section: "articles", label: t("articles"), icon: List, onSelect: onOpenArticles },
+    { section: "inbox", label: t("inbox"), icon: Inbox, onSelect: onOpenInbox },
     { section: "search", label: t("search"), icon: Search, onSelect: onOpenSearch },
     { section: "settings", label: t("settings"), icon: Settings2, onSelect: onOpenSettings },
   ];
