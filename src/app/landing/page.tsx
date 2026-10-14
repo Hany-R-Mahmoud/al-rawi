@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, ArrowRight, ArrowUpRight, BellRing, BookOpenText, BookmarkCheck, Check, Inbox, Languages, Mail, Moon, Rss, ShieldCheck, Smartphone, Sun, Tv } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpenText, BookmarkCheck, Check, Inbox, Languages, Mail, Moon, Rss, Share2, ShieldCheck, Smartphone, Sun, Tv } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { BrandLogo } from "@/components/brand-logo";
@@ -11,7 +11,7 @@ import StandaloneVisitorCounter from "@/components/StandaloneVisitorCounter";
 
 const sources = [
   { icon: Rss, name: "revRssName", detail: "revRssDetail", availability: "revAllPlatforms" },
-  { icon: BellRing, name: "revNotificationsName", detail: "revNotificationsDetail", availability: "revAndroidOnly" },
+  { icon: Share2, name: "revNotificationsName", detail: "revNotificationsDetail", availability: "revAllPlatforms" },
   { icon: Mail, name: "revGmailName", detail: "revGmailDetail", availability: "revAndroidOnly" },
   { icon: Tv, name: "revYoutubeName", detail: "revYoutubeDetail", availability: "revAndroidOnly" },
 ] as const;

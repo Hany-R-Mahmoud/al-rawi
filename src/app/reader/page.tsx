@@ -9,8 +9,8 @@ import { BrandLogo } from "@/components/brand-logo";
 import { InboxPane } from "@/components/inbox-pane";
 import { WorkspaceHeader } from "@/components/workspace-header";
 import type { SettingsSection } from "@/components/settings-dialog";
-import { CaptureOnboarding } from "@/components/capture-onboarding";
-import { upsertInboxItems, rssInboxItems } from "@/lib/inbox-store";
+import { upsertInboxItems, rssInboxItems, setInboxRead, getInboxItem } from "@/lib/inbox-store";
+import { importPendingShares, listenForShares } from "@/lib/native-shares";
 import { FeedList } from "@/components/feed-list";
 import { ReaderPane } from "@/components/reader-pane";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -132,11 +132,16 @@ export default function Home() {
       const successes = results.filter((item): item is { source: ReaderFeed; result: { feed: ReaderFeed; articles: Article[] } } => "result" in item);
       const failures = results.filter((item): item is { source: ReaderFeed; error: string } => "error" in item);
       const nextArticles = successes.flatMap((item) => item.result.articles);
-      // Inbox is durable; reader panes keep their existing in-memory behavior.
-      void upsertInboxItems(rssInboxItems(nextArticles)).catch(() => {});
+      // Keep the reader and inbox reading states aligned across refreshes.
+      let hydrated = nextArticles;
+      try {
+        await upsertInboxItems(rssInboxItems(nextArticles));
+        const records = await Promise.all(nextArticles.map((a) => getInboxItem("rss:" + a.id)));
+        hydrated = nextArticles.map((a, i) => ({ ...a, isRead: !!records[i]?.readAt }));
+      } catch { /* RSS still works when IndexedDB is unavailable. */ }
       setArticles((current) => {
         const targetIds = new Set(targets.map((feed) => feed.id));
-        return [...current.filter((article) => !targetIds.has(article.feedId)), ...nextArticles].sort(sortArticles);
+        return [...current.filter((article) => !targetIds.has(article.feedId)), ...hydrated].sort(sortArticles);
       });
       setSelectedArticleId((current) => current && nextArticles.some((article) => article.id === current) ? current : nextArticles[0]?.id || null);
       setFeeds((current) => current.map((feed) => {
@@ -158,6 +163,29 @@ export default function Home() {
       setLoading(false);
       setRefreshing(false);
     }
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+    let remove: (() => Promise<void>) | undefined;
+    const drain = async () => {
+      try {
+        const received = await importPendingShares();
+        if (!disposed && received > 0) setShowInbox(true);
+      } catch { /* Share remains in native queue and will retry on next app start. */ }
+    };
+    void listenForShares(() => void drain()).then((cleanup) => {
+      if (disposed) void cleanup();
+      else remove = cleanup;
+    }).catch(() => {});
+    void drain();
+    const onVisible = () => { if (document.visibilityState === "visible") void drain(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      disposed = true;
+      void remove?.();
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   useEffect(() => {
@@ -222,10 +250,13 @@ export default function Home() {
     if (feeds.some((feed) => feed.url === normalizedUrl)) throw new Error(translate(languageRef.current, "feedAlreadyInList"));
     const nextStored: StoredFeed = { id: makeFeedId(normalizedUrl), url: normalizedUrl, title: title || parsedUrl.hostname, category: category || null };
     const nextFeed = feedFromStored(nextStored);
-    const nextFeeds = [...feeds, nextFeed];
+    // Validate the remote feed BEFORE announcing a successful subscription.
+    const verified = await fetchFeed(nextFeed, languageRef.current);
+    const nextFeeds = [...feeds, verified.feed];
     setFeeds(nextFeeds);
     writeLocalReaderState(nextFeeds.map(toStoredFeed));
-    await refreshFeeds([nextFeed]);
+    setArticles((current) => [...current.filter((item) => item.feedId !== nextFeed.id), ...verified.articles].sort(sortArticles));
+    try { await upsertInboxItems(rssInboxItems(verified.articles)); } catch { /* Feed still works without IndexedDB. */ }
   };
 
   const addCatalogFeeds = async (catalogFeeds: readonly FeedCatalogItem[]) => {
@@ -253,8 +284,17 @@ export default function Home() {
     if (selectedArticle?.feedId === feedId) setSelectedArticleId(null);
   };
 
-  const markRead = (id: string) => setArticles((current) => current.map((article) => article.id === id ? { ...article, isRead: !article.isRead } : article));
-  const selectArticle = (id: string) => { setReaderLoading(true); setSelectedArticleId(id); };
+  const markRead = (id: string) => {
+    const item = articles.find((article) => article.id === id);
+    if (item) void setInboxRead("rss:" + id, !item.isRead).catch(() => {});
+    setArticles((current) => current.map((a) => a.id === id ? { ...a, isRead: !a.isRead } : a));
+  };
+  const selectArticle = (id: string) => {
+    setReaderLoading(true);
+    setSelectedArticleId(id);
+    setArticles((current) => current.map((a) => a.id === id ? { ...a, isRead: true } : a));
+    void setInboxRead("rss:" + id, true).catch(() => {});
+  };
   const navigate = (delta: number) => {
     const index = visibleArticles.findIndex((article) => article.id === selectedArticleId);
     if (visibleArticles.length) {
@@ -316,8 +356,8 @@ export default function Home() {
       </section>
       </>}
       </div>
-      <CaptureOnboarding onEnable={() => setShowInbox(true)} />
-      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} section={settingsSection} onSectionChange={setSettingsSection} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} />
+
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} section={settingsSection} onSectionChange={setSettingsSection} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} onAddFeed={addFeed} />
       <MobileBottomNav
         activeSection={mobileActiveSection}
         onOpenFeeds={() => { setShowInbox(false); setSelectedArticleId(null); setShowSearch(false); setShowMobileNav(true); }}

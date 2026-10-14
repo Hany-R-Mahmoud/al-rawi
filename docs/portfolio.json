@@ -6,8 +6,8 @@
     "ar": "Al-Rawi"
   },
   "summary": {
-    "en": "Al-Rawi is a bilingual local-first RSS reading workspace with a unified inbox and optional Android notification capture plus Google-source imports that require real-device/account verification.",
-    "ar": "الراوي مساحة قراءة ثنائية اللغة لخلاصات RSS والوارد الموحد، مع التقاط إشعارات أندرويد واستيراد مصادر جوجل اختياريًا بعد اختبار الجهاز والحسابات."
+    "en": "A privacy-first bilingual content hub for RSS/Atom, explicit shares, Gmail and YouTube, with independent read and saved states. No notification access.",
+    "ar": "مركز محتوى ثنائي اللغة يراعي الخصوصية لخلاصات RSS وAtom والمشاركات وGmail ويوتيوب، بدون صلاحية قراءة الإشعارات."
   },
   "status": "showcase",
   "portfolio": true,
@@ -53,21 +53,25 @@
       "ar": "Installable PWA experience with production-only shell caching, Android/iOS install guidance, and embedded-browser fallbacks."
     },
     {
-      "en": "Feature branch: Kotlin Android notification listener and SQLite archive, plus persistent IndexedDB inbox entries.",
-      "ar": "فرع تطوير: مستمع إشعارات أندرويد وأرشيف SQLite وعناصر وارد IndexedDB."
-    },
-    {
       "en": "Feature branch: Gmail label and YouTube subscription import via real Google OAuth and native token encryption.",
       "ar": "فرع تطوير: استيراد تصنيفات جيميل واشتراكات يوتيوب عبر OAuth حقيقي مع تشفير الرموز."
     },
     {
       "en": "Paper & Ink editorial landing and workspace, clear Reading/Inbox navigation, accessible settings, sources, and native permission onboarding.",
       "ar": "واجهة Paper & Ink تحريرية مع تنقل واضح بين القراءة والوارد وتحسينات للإعدادات والمصادر وصلاحيات أندرويد."
+    },
+    {
+      "en": "RSS/Atom, GitHub public release feeds, pasted links, and Android user-initiated sharing.",
+      "ar": "خلاصات RSS وAtom وإصدارات GitHub العامة وروابط محفوظة ومشاركة أندرويد المباشرة."
+    },
+    {
+      "en": "Inbox Read/Unread independent of Saved/Done/Archived with source previews.",
+      "ar": "وارد بحالات قراءة منفصلة عن الحفظ والإنهاء والأرشفة ومعاينات مصادر."
     }
   ],
   "progress": {
-    "en": "UI refinement on its own branch; browser and Android acceptance remain separate.",
-    "ar": "تطوير الواجهة على فرع منفصل؛ مراجعة المتصفح واعتماد نسخة أندرويد مرحلتان منفصلتان."
+    "en": "Privacy-first Content Hub implementation; real Android share and OAuth acceptance pending.",
+    "ar": "تنفيذ مركز محتوى يراعي الخصوصية؛ اختبار المشاركة وربط Google على أندرويد ما زال مطلوبًا."
   },
   "issues": [
     {
@@ -79,8 +83,8 @@
       "ar": "No conventional test directory was detected."
     },
     {
-      "en": "Revival requires physical Android listener and real Google OAuth acceptance tests before release.",
-      "ar": "يتطلب التحديث اختبارات التقاط إشعارات أندرويد وOAuth الحقيقي قبل الإطلاق."
+      "en": "Real Android Share Sheet and Google OAuth device tests pending.",
+      "ar": "اختبارات مشاركة أندرويد وOAuth بحساب حقيقي معلقة."
     }
   ],
   "suggestions": [

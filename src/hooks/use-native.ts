@@ -1,6 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import { isNative } from "@/lib/native-notifications";
+import { isNative } from "@/lib/native-shares";
 
 const subscribe = () => () => {};
 const getServerSnapshot = () => false;

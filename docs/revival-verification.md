@@ -1,93 +1,77 @@
-# Al-Rawi Revival — device verification and credential handoff
+# Al-Rawi Content Hub: privacy, build and device acceptance
 
-Status: implementation branch only. **Physical-device capture and real Google OAuth MUST be tested before production release.** No mock connection or demo data is included. No GitHub Actions workflows run.
+This branch changes the product from Notification History to a privacy-first Content Hub. Device sharing and real Google account acceptance MUST be tested before shipping. A successful APK build is not proof of Play Protect approval or working OAuth.
 
-## Architecture
+## What users get
 
-- The existing Next.js web/PWA RSS reader keeps its same-origin API routes and paper/ink theme.
-- Android is a Capacitor static export; npm run build:capacitor temporarily moves only the API routes and always restores them in a finally block, and syncs the Android project.
-- On Android, CapacitorHttp fetches RSS through the existing production public-fetch backend at https://al-rawi-rss.vercel.app. Confirm this backend before release; its SSRF checks and limits are unchanged.
-- The Android NotificationListenerService saves notifications to **native SQLite before** signaling the WebView. Captured notifications survive dismissal and app UI/process death as long as Android delivers them to the listener.
-- Native SQLite stores notification titles, text, timestamps, originating apps, and statuses. IndexedDB stores RSS/Gmail/YouTube items and statuses. Search merges them locally.
-- Google OAuth uses Android AppAuth/PKCE, with separate read-only scopes per source; tokens are AES-GCM encrypted using Android Keystore and never exposed to the JavaScript bridge. Android backup is disabled.
-- Gmail imports header/snippet metadata from a **user-selected Gmail label** (not whole email bodies/attachments); YouTube imports videos from subscribed channels. Imports run only manually or at most every six hours while the app is open/resumed.
+- Web and Android: public RSS/Atom feeds, including blogs, podcasts and GitHub public release feeds; saved links and notes.
+- Android: user-initiated Share -> Al-Rawi for plain text and URLs. Al-Rawi never asks to read other apps' notifications.
+- Android optional Google OAuth: selected Gmail newsletter label previews and YouTube subscriptions. Requires real Android OAuth client ID and an eligible account.
+- Unified Inbox: All, Unread, Read, Saved, Done, Archived and Search. Read/unread is independent of Saved/Done.
+- Item detail: full RSS article when the existing protected backend can extract it; optional on-demand Gmail plain-text email body; YouTube click-to-play privacy-enhanced embed; and Open Original link. Some source pages offer only a preview.
 
-## Build
+## Removed security-sensitive behavior
+
+- Removed the Android NotificationListenerService and the NotificationCapture Capacitor plugin, including the BIND_NOTIFICATION_LISTENER_SERVICE permission in the manifest.
+- On Android app startup, MainActivity deletes the old notifications.db SQLite archive to erase historical notification content from previous versions.
+- IndexedDB schema v2 deletes any legacy notification items inadvertently copied into the web database.
+- Never read, receive, or archive bank alerts, OTP notifications, WhatsApp notifications or other apps' notifications in the background.
+
+The new SharedContentPlugin receives only ACTION_SEND plain text/HTML shared by user choice, and queues it privately on device until IndexedDB confirms persistence. Shared content is then acknowledged and removed from the queue. The app has internet permission for network sources.
+
+No Android listener offers a permission-free way of reading other apps' notifications. This redesign intentionally gives up that feature. A new APK still needs to be tried without disabling Google Play Protect.
+
+## Privacy and Google permission disclosure
+
+Gmail OAuth uses gmail.readonly, a Google **restricted** scope. Its technical ability covers the whole mailbox, even though Al-Rawi imports from the label the user selects. The label filter is app behavior, NOT Google-enforced least-privilege. Gmail metadata is also restricted, and cannot provide email bodies. Full Gmail plain-text body is downloaded when an item is opened, not continuously.
+
+YouTube uses the separate youtube.readonly scope for subscriptions and latest uploads; quota limits apply. Tokens remain encrypted on device using Android Keystore and never pass to WebView. Do not commit tokens, credentials or secrets.
+
+Google refresh only happens manually or at most once every six hours when the Android app is open or reopened. No WorkManager background sync has been implemented; do not describe it as real-time delivery while closed. Disconnect clears locally stored grants, but already imported entries stay on device. Users can revoke the Google grant from Google Account settings.
+
+There is no cloud synchronization of Inbox items. Data is per device/browser and is lost on uninstall or clearing app/browser data. Android backup is disabled.
+
+## Actual connected sources
+
+- Any public RSS/Atom URL: Web and Android, using the existing secure feed proxy.
+- GitHub **public repository releases only**: an Atom feed; no private GitHub account notifications.
+- YouTube and Gmail: real but Android-only Google OAuth connectors; without an Android Google OAuth Client ID they are unconfigured, not mocked.
+- Other apps: user-initiated Share Sheet or manual paste. No claim of automatic WhatsApp, Outlook, Slack or Telegram integrations.
+
+## Build from the terminal
+
+Requires Node.js, JDK 21 and Android SDK Platform 36 with Build Tools 36. Set JAVA_HOME and ANDROID_HOME (or android/local.properties).
 
     npm ci
     npm run lint
     npx tsc --noEmit
     npm test
     npm run build
-    npm run build:capacitor
-
-## Android APK from the terminal — no Android Studio UI needed
-
-The same repository can build and package a complete Android debug APK with
-one command. Prerequisites: Node.js, JDK 21, Android SDK Platform 36, Build
-Tools 36, accepted Android licenses, and JAVA_HOME plus ANDROID_HOME (or
-an SDK path in android/local.properties).
-
-    npm ci
     npm run android:apk
 
-The command runs the Next.js static export, synchronizes the Capacitor Android
-project and all its native plugins, invokes the Gradle wrapper's
-:app:assembleDebug task and places the checked output at:
+The last command exports the Next.js static site, syncs Capacitor Android/plugins, compiles native code with the Gradle wrapper and copies a debug-signed APK to artifacts/al-rawi-debug.apk.
 
-    artifacts/al-rawi-debug.apk
-
-The original Gradle output remains at:
-
-    android/app/build/outputs/apk/debug/app-debug.apk
-
-To install it with ADB on a connected Android phone with USB debugging enabled:
+To install with USB Debugging:
 
     adb devices
     adb install -r artifacts/al-rawi-debug.apk
 
-This is a debug-signed APK for testing, **not** a Play Store release package.
-A previous APK signed by a different key may not be upgradable in place:
-uninstalling that app clears its on-device notification archive and other
-data. Do not uninstall without checking what needs to be kept.
+For Google source connections, create a real Android OAuth client ID for package com.hany.alrawi and the signing certificate SHA-1 in Google Cloud Console, enable Gmail and YouTube Data API v3, set up consent and testers, then build with:
 
-A successful Gradle build verifies compilation and plugin packaging, **not**
-background notification delivery or OAuth authentication on a real Android
-device. Finish the separate acceptance checklist below.
+    ALRAWI_GOOGLE_ANDROID_CLIENT_ID=YOUR_ANDROID_CLIENT_ID npm run android:apk
 
-## Real Google setup REQUIRED
+Do not use a web client secret. The debug APK is not a Play Store release APK.
 
-1. In Google Cloud Console enable Gmail API and YouTube Data API v3; configure OAuth consent screen, required user/tester list and read-only scopes. Gmail read-only is a restricted scope; Google verification requirements may apply.
-2. Create a **Google Android OAuth Client ID** using the Android package com.hany.alrawi and **SHA-1 of the installed APK's signing certificate**. Do not use a web client secret.
-3. Provide the public client ID at APK build time using the environment variable ALRAWI_GOOGLE_ANDROID_CLIENT_ID, for example: ALRAWI_GOOGLE_ANDROID_CLIENT_ID=YOUR_ID npm run android:apk. The Gradle wrapper inherits this variable. Rebuild the APK after changing the ID. Without it, Gmail/YouTube connectors report not configured.
-4. The AppAuth redirect scheme is automatically derived from the Android client ID: com.googleusercontent.apps.PREFIX:/oauth2redirect. Confirm Google's currently supported redirect scheme/Android client constraints on a device; never switch to an insecure embedded login to bypass an OAuth rejection.
-5. In Settings > Connected sources connect Gmail and YouTube with real Google accounts, select an existing newsletter Gmail label and press Refresh now. Verify actual messages and videos appear.
-6. **No YouTube API key is needed** for the implemented authenticated Data API requests: OAuth bearer tokens authenticate the subscriptions endpoint. Enable quota and the API in Cloud Console.
-7. Disconnect clears the local source grant. For full Google-side revocation, revoke app access from the user's Google Account settings.
+## Physical phone acceptance checklist (pending)
 
-Never commit a real token, keystore, client secret, credentials file, .env, or personal notifications.
-
-## Android physical device acceptance — pending
-
-- [ ] Install a newly built APK on a physical Android device; confirm native launch enters the reader and permission onboarding is shown once.
-- [ ] Choose Skip. Reader works unchanged and Settings allows access to be enabled later. No aggressive permission re-prompt.
-- [ ] Enable notification listener access in Android settings; confirm Al-Rawi reflects permission on return.
-- [ ] Generate a real notification (for example, from YouTube). Verify Inbox receives it within seconds, including title/text when Android allows access.
-- [ ] Dismiss the notification from Android's shade. Confirm Al-Rawi retains its saved copy.
-- [ ] Close/swipe away the app UI, receive a new notification, then reopen and confirm the record was persisted despite no active JavaScript.
-- [ ] Reboot; check listener reconnects. Verify saved history and later notifications.
-- [ ] Kill/reopen app and verify Save, Done, Archive and Restore persist; search English and Arabic titles/text; confirm Missed means new older than 48 hours.
-- [ ] Deny access; RSS remains usable and access can be enabled again in Settings.
-- [ ] Test Android 13–16 as available; Android 15+ may redact OTPs and other sensitive data.
-- [ ] Use real OAuth consent, test Gmail labels, YouTube subscriptions, token refresh/expiry, disconnect, quotas and error states.
-- [ ] Confirm native RSS and article extraction backend calls, including CapacitorHttp transport/CORS.
-- [ ] Verify web/PWA build behavior, keyboard shortcuts, feed changes, OPML, desktop/mobile UI, both languages and RTL, light/dark.
-
-## Known limitations
-
-- Force Stop, revoked access, OS/vendor restrictions, powered-off device or lost delivery can cause missing notifications. A dismissed notification from such a gap cannot be reconstructed. No listener can promise 100%.
-- The local archive persists **while installed and while app data is retained**, not after uninstall/clear-data. There is no cloud backup or cross-device synchronization.
-- Notification text in native SQLite is ordinary local app data, not encrypted like OAuth tokens. Android app sandbox isolation applies but rooted/compromised devices may access it.
-- Without a configured real Google Android client ID, the UI shows an unconfigured state. It never fabricates Google connections.
-- Up to 500 subscribed YouTube channels and each channel's five latest uploads can be scanned per manual/scheduled sync; no server cron or push integration exists.
-- A successful code build does not prove reliability on real Android devices or Google approvals.
+- [ ] Inspect merged APK manifest: no notification listener service or BIND_NOTIFICATION_LISTENER_SERVICE permission.
+- [ ] Install the new APK WITHOUT disabling Play Protect; report exact warning if any remains.
+- [ ] Upgrade from the previous version and verify no Notification Access prompt or captured notifications remain.
+- [ ] Share a URL from Chrome/GitHub/YouTube via Share -> Al-Rawi, both cold and warm app starts; verify it persists after closing/reopening.
+- [ ] Test repeated shares, shared text, and failure/retry before native queue ACK.
+- [ ] Paste links/notes in Web and Android; confirm local data is searchable and saved.
+- [ ] Verify read/unread/saved/done/archive persistence, and refresh does not erase user choices.
+- [ ] Open full RSS article where available; verify fallback preview and Open Original when extraction fails.
+- [ ] With configured real Google accounts, connect Gmail and YouTube, select a Gmail label, refresh, read an email, watch a video after explicit playback, and disconnect.
+- [ ] Check EN/AR, RTL, mobile, desktop, theme, OPML, Reader and PWA behavior.
+- [ ] Verify no device-wide notifications are captured or stored.

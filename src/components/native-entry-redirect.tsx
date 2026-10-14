@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { isNative } from "@/lib/native-notifications";
+import { isNative } from "@/lib/native-shares";
 
 /** The native app enters its workspace; the browser retains the existing landing page. */
 export function NativeEntryRedirect() {

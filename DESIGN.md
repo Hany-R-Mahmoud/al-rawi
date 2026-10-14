@@ -66,7 +66,7 @@ The redesign extends the existing **Paper & Ink** identity; it does not replace 
 
 ### Product truth and style
 
-- The product is **a quieter reading space**. Present RSS honestly on web/PWA; explicitly mark native Android notification capture and Gmail/YouTube as Android-only integrations.
+- The product is **a quieter reading space**. Present RSS honestly on web/PWA; explicitly mark native explicit Android content sharing and Gmail/YouTube as Android-only integrations.
 - Preserve the actual logo, warm paper and ink, and restrained burnt-terracotta accent. Raise small-text contrast rather than inventing a new palette.
 - Use generous editorial whitespace and a photographic hero image. No decorative CSS illustrations, staged fake notifications, fake account balances, or pretend connected sources.
 - Serif for editorial headings; sans for controls; Noto Naskh/Amiri for Arabic. All UI supports light/dark, RTL and mixed script.

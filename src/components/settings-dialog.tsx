@@ -3,17 +3,16 @@
 import { useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/components/language-provider";
-import { Bell, Download, Palette, Plug2, Settings2, Upload } from "lucide-react";
+import { Download, Palette, Plug2, Settings2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { makeFeedId } from "@/lib/local-reader";
-import { CaptureSettings } from "@/components/capture-settings";
 import { SourcesSettings } from "@/components/sources-settings";
 import type { StoredFeed } from "@/lib/reader-types";
 
-export type SettingsSection = "appearance" | "sources" | "notifications";
+export type SettingsSection = "appearance" | "sources";
 type SettingsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,10 +20,11 @@ type SettingsDialogProps = {
   onSectionChange: (section: SettingsSection) => void;
   feeds: StoredFeed[];
   onImportFeeds: (feeds: StoredFeed[]) => number;
+  onAddFeed: (url: string, title?: string, category?: string) => Promise<void>;
 };
 type OpmlFeed = { title: string; url: string; category: string | null };
 
-export function SettingsDialog({ open, onOpenChange, section, onSectionChange, feeds, onImportFeeds }: SettingsDialogProps) {
+export function SettingsDialog({ open, onOpenChange, section, onSectionChange, feeds, onImportFeeds, onAddFeed }: SettingsDialogProps) {
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +63,6 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
   const tabs = [
     { id: "appearance" as const, icon: Palette, label: t("uiPreferences") },
     { id: "sources" as const, icon: Plug2, label: t("sourcesTitle") },
-    { id: "notifications" as const, icon: Bell, label: t("inboxPermissionSettings") },
   ];
 
   return (
@@ -111,8 +110,7 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
             </section>
           </div>
         )}
-        {section === "sources" && <div className="pb-3 pt-2"><SourcesSettings /></div>}
-        {section === "notifications" && <div className="space-y-3 pb-3 pt-2"><h3 className="font-serif text-lg text-ink">{t("uiNotificationTitle")}</h3><p className="text-sm leading-6 text-ink-subtle">{t("uiNotificationHelp")}</p><CaptureSettings /></div>}
+        {section === "sources" && <div className="pb-3 pt-2"><SourcesSettings onAddFeed={onAddFeed} /></div>}
       </DialogContent>
     </Dialog>
   );
