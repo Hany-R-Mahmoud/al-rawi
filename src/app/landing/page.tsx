@@ -76,7 +76,18 @@ export default function LandingPage() {
           </div>
         </div>
         <figure className="relative min-h-[350px] overflow-hidden border border-border bg-paper-raised sm:min-h-[490px] lg:min-h-[570px]">
-          <Image src="/visuals/reading-desk.webp" alt={t("revHeroImageAlt")} fill priority sizes="(max-width: 1024px) 100vw, 55vw" className="object-cover object-[65%_center]" />
+          <picture>
+            <source media="(max-width: 639px)" type="image/webp" srcSet="/visuals/reading-desk-mobile-v2.webp" />
+            <Image
+              src="/visuals/reading-desk-v2.webp"
+              alt={t("revHeroImageAlt")}
+              fill
+              loading="eager"
+              fetchPriority="high"
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              className="object-cover object-center"
+            />
+          </picture>
           <figcaption className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 border border-paper/50 bg-paper/95 px-4 py-3 text-xs text-ink shadow-sm backdrop-blur-sm sm:inset-x-5 sm:bottom-5 sm:px-5 sm:py-4">
             <span className="font-serif text-base sm:text-lg">{t("revImageCaption")}</span><span className="font-mono text-[11px] uppercase tracking-wider text-ink-subtle">Al-Rawi / 01</span>
           </figcaption>

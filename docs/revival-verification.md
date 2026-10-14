@@ -20,17 +20,46 @@ Status: implementation branch only. **Physical-device capture and real Google OA
     npm test
     npm run build
     npm run build:capacitor
-    npx cap open android
 
-Native Gradle compile needs JDK 21, Android SDK Platform 36 and Android Studio (or equivalent CLI):
+## Android APK from the terminal — no Android Studio UI needed
 
-    cd android && ./gradlew assembleDebug
+The same repository can build and package a complete Android debug APK with
+one command. Prerequisites: Node.js, JDK 21, Android SDK Platform 36, Build
+Tools 36, accepted Android licenses, and JAVA_HOME plus ANDROID_HOME (or
+an SDK path in android/local.properties).
+
+    npm ci
+    npm run android:apk
+
+The command runs the Next.js static export, synchronizes the Capacitor Android
+project and all its native plugins, invokes the Gradle wrapper's
+:app:assembleDebug task and places the checked output at:
+
+    artifacts/al-rawi-debug.apk
+
+The original Gradle output remains at:
+
+    android/app/build/outputs/apk/debug/app-debug.apk
+
+To install it with ADB on a connected Android phone with USB debugging enabled:
+
+    adb devices
+    adb install -r artifacts/al-rawi-debug.apk
+
+This is a debug-signed APK for testing, **not** a Play Store release package.
+A previous APK signed by a different key may not be upgradable in place:
+uninstalling that app clears its on-device notification archive and other
+data. Do not uninstall without checking what needs to be kept.
+
+A successful Gradle build verifies compilation and plugin packaging, **not**
+background notification delivery or OAuth authentication on a real Android
+device. Finish the separate acceptance checklist below.
 
 ## Real Google setup REQUIRED
 
 1. In Google Cloud Console enable Gmail API and YouTube Data API v3; configure OAuth consent screen, required user/tester list and read-only scopes. Gmail read-only is a restricted scope; Google verification requirements may apply.
 2. Create a **Google Android OAuth Client ID** using the Android package com.hany.alrawi and **SHA-1 of the installed APK's signing certificate**. Do not use a web client secret.
-3. Provide the public client ID to the Gradle build via an external environment variable: ALRAWI_GOOGLE_ANDROID_CLIENT_ID. Example shell invocation: ALRAWI_GOOGLE_ANDROID_CLIENT_ID=YOUR_ID ./gradlew assembleDebug. Android Studio must also supply the variable to its Gradle process when building there. Rebuild after changing the ID.
+3. Provide the public client ID at APK build time using the environment variable ALRAWI_GOOGLE_ANDROID_CLIENT_ID, for example: ALRAWI_GOOGLE_ANDROID_CLIENT_ID=YOUR_ID npm run android:apk. The Gradle wrapper inherits this variable. Rebuild the APK after changing the ID. Without it, Gmail/YouTube connectors report not configured.
 4. The AppAuth redirect scheme is automatically derived from the Android client ID: com.googleusercontent.apps.PREFIX:/oauth2redirect. Confirm Google's currently supported redirect scheme/Android client constraints on a device; never switch to an insecure embedded login to bypass an OAuth rejection.
 5. In Settings > Connected sources connect Gmail and YouTube with real Google accounts, select an existing newsletter Gmail label and press Refresh now. Verify actual messages and videos appear.
 6. **No YouTube API key is needed** for the implemented authenticated Data API requests: OAuth bearer tokens authenticate the subscriptions endpoint. Enable quota and the API in Cloud Console.

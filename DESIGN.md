@@ -77,7 +77,7 @@ The redesign extends the existing **Paper & Ink** identity; it does not replace 
 
 ### AI-generated visual asset
 
-public/visuals/reading-desk.webp is an original generated editorial desk still life, exported as a small WebP for local loading. This **replaces the former CSS-drawn orbital hero**. Internal UI relies on actual lists, forms, controls and meaningful icons, not images of fictional interactive screens.
+The Hero now uses two original, high-resolution generated photographs: public/visuals/reading-desk-v2.webp (desktop, 1448x1086) and public/visuals/reading-desk-mobile-v2.webp (mobile, 1122x1402). Both preserve full visual detail and use new versioned filenames to avoid cached copies of the old 4 KB pixelated asset. These replace the former CSS-drawn orbital hero. Internal UI relies on actual lists, forms, controls and meaningful icons, not images of fictional interactive screens.
 
 ### Component map
 

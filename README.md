@@ -97,3 +97,58 @@ page, a first-class Reading/Inbox navigation, better empty states and
 dedicated settings for Preferences, Sources and Android Notifications.
 RSS continues to work on the web; native-only features are labeled honestly.
 See [UI audit](docs/revival-ui-audit.md) and [design contract](DESIGN.md).
+
+
+### Android APK from the terminal (no Android Studio UI)
+
+Install Node.js, JDK 21 and Android SDK Platform 36 with Build Tools 36.
+Set JAVA_HOME and ANDROID_HOME (or configure android/local.properties).
+
+Run these commands from the repository root:
+
+~~~bash
+npm ci
+npm run android:apk
+~~~
+
+The **android:apk** command builds the static Next.js app, runs Capacitor
+sync for the native Android plugins, compiles Kotlin/Java with the Gradle
+wrapper, and produces:
+
+~~~text
+artifacts/al-rawi-debug.apk
+~~~
+
+To install on an Android phone with USB debugging enabled:
+
+~~~bash
+adb devices
+adb install -r artifacts/al-rawi-debug.apk
+~~~
+
+This is a **debug-signed APK for testing**, not a release build or Play Store
+package. If you want the Gmail/YouTube native OAuth connectors, supply a real
+Google Android OAuth client ID at build time (example for macOS/Linux):
+
+~~~bash
+ALRAWI_GOOGLE_ANDROID_CLIENT_ID=YOUR_ANDROID_CLIENT_ID npm run android:apk
+~~~
+
+Without that ID, these Google sources report unconfigured; RSS and the native
+notification listener can still be tested. The debug certificate's SHA-1 must
+match your Google Cloud Android OAuth client configuration. Uninstalling an
+existing build (e.g. to resolve different signing keys) deletes locally stored
+data, so do not uninstall casually. See the
+[device acceptance guide](docs/revival-verification.md).
+
+### Hero image quality
+
+The previous highly compressed 4 KB Hero was replaced by two newly generated
+full-resolution editorial photographs:
+
+- Desktop/large screens: public/visuals/reading-desk-v2.webp (1448 x 1086).
+- Mobile: public/visuals/reading-desk-mobile-v2.webp (1122 x 1402).
+
+Both use the existing Paper & Ink aesthetic. New filenames prevent stale
+browser image optimization caches. They are shipped in both the web and
+Capacitor Android builds; the Android app needs rebuilding to include them.
