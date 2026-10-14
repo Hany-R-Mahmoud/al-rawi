@@ -1,4 +1,4 @@
-const VERSION = "al-rawi-pwa-v1";
+const VERSION = "al-rawi-pwa-v2";
 const PAGE_CACHE = `${VERSION}-pages`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const IMAGE_CACHE = `${VERSION}-images`;

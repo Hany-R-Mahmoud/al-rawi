@@ -89,3 +89,11 @@ Use npm run build:capacitor to build and sync the Android native project;
 npm run build remains the Next.js web/PWA build. Build prerequisites, Google
 setup and device tests (pending before release) are documented at
 [Revival verification](docs/revival-verification.md).
+
+### Revival interface revision
+
+The Paper & Ink UI introduces the product's full capabilities on the landing
+page, a first-class Reading/Inbox navigation, better empty states and
+dedicated settings for Preferences, Sources and Android Notifications.
+RSS continues to work on the web; native-only features are labeled honestly.
+See [UI audit](docs/revival-ui-audit.md) and [design contract](DESIGN.md).

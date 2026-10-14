@@ -1,7 +1,7 @@
 {
   "name": "Al-Rawi",
   "short_name": "Al-Rawi",
-  "description": "A calm bilingual RSS reader with RTL support and distraction-free reading",
+  "description": "Al-Rawi: calm bilingual RSS reading and a local inbox. Android adds notifications and connected Google sources.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

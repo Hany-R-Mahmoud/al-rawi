@@ -80,14 +80,14 @@ export function FeedDiscoveryDialog({ existingUrls, onAddFeed, onAddCatalogFeeds
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" className="flex-1 text-xs gap-1"><Plus className="h-3 w-3" />{t("addFeed")}</Button>} />
-      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto">
+      <DialogTrigger render={<Button variant="outline" size="sm" className="min-h-10 w-full gap-2 text-xs"><Plus className="h-3 w-3" />{t("addFeed")}</Button>} />
+      <DialogContent className="max-h-[min(90dvh,850px)] max-w-2xl overflow-y-auto border-border bg-paper">
         <DialogHeader>
-          <DialogTitle>{t("discoverFeeds")}</DialogTitle>
+          <DialogTitle className="font-serif text-2xl text-ink">{t("discoverFeeds")}</DialogTitle>
           <DialogDescription>{t("rssCatalogDescription")}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-3 border-b border-border" role="tablist" aria-label={t("discoverFeeds")}>
+        <div className="grid grid-cols-3 gap-1 border-b border-border" role="tablist" aria-label={t("discoverFeeds")}>
           {([["presets", "starterPacks"], ["catalog", "searchRssCatalog"], ["url", "addUrlManually"]] as const).map(([value, labelKey]) => (
             <button key={value} type="button" role="tab" aria-selected={mode === value} className={`border-b-2 px-2 py-2 text-xs transition-colors ${mode === value ? "border-accent2 text-ink" : "border-transparent text-ink-faint hover:text-ink"}`} onClick={() => { setMode(value); setError(""); }}>
               {t(labelKey)}
@@ -102,7 +102,7 @@ export function FeedDiscoveryDialog({ existingUrls, onAddFeed, onAddCatalogFeeds
               const missingItems = presetItems.filter((item) => !existingUrls.has(item.url));
               const isAdded = missingItems.length === 0;
               return (
-                <article key={preset.id} className="border border-border p-3">
+                <article key={preset.id} className="rounded-md border border-border bg-paper-raised p-4">
                   <div className="flex items-start justify-between gap-3"><div><h3 className="text-sm font-medium text-ink">{t(preset.nameKey)}</h3><p className="mt-1 text-xs leading-5 text-ink-subtle">{t(preset.descriptionKey)}</p></div><Rss className="h-4 w-4 shrink-0 text-accent2" aria-hidden="true" /></div>
                   <div className="mt-3 flex items-center justify-between gap-2"><span className="font-mono text-[10px] text-ink-faint">{presetItems.length} {t("feeds").toLowerCase()}</span><Button variant={isAdded ? "ghost" : "outline"} size="sm" className="text-xs" disabled={isAdded || pendingId === preset.id} onClick={() => void addCatalogItems(missingItems, preset.id)}>{pendingId === preset.id ? <Loader2 className="me-1 h-3 w-3 animate-spin" /> : null}{isAdded ? t("added") : missingItems.length < presetItems.length ? t("addRemaining") : t("addPreset")}</Button></div>
                 </article>
@@ -118,7 +118,7 @@ export function FeedDiscoveryDialog({ existingUrls, onAddFeed, onAddCatalogFeeds
               {categories.map((value) => <button key={value} type="button" className={`shrink-0 border px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${category === value ? "border-accent2 bg-accent2/10 text-accent2" : "border-border text-ink-faint hover:text-ink"}`} onClick={() => setCategory(value)}>{value === "all" ? t("allCategories") : t(categoryLabels[value])}</button>)}
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              {filteredFeeds.map((feed) => { const isAdded = existingUrls.has(feed.url); return <article key={feed.id} className="flex items-center gap-3 border border-border p-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-accent2"><Rss className="h-3.5 w-3.5" aria-hidden="true" /></div><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate text-xs font-medium text-ink">{feed.title}</h3><a href={feed.siteUrl} target="_blank" rel="noreferrer" className="text-ink-faint hover:text-accent2" aria-label={`${t("visitSource")}: ${feed.title}`}><ExternalLink className="h-3 w-3" aria-hidden="true" /></a></div><p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-ink-faint">{t(categoryLabels[feed.category])} · {t("sourceLanguage")}: {feed.language === "ar" ? t("arabic") : t("english")}</p></div><Button variant={isAdded ? "ghost" : "outline"} size="xs" disabled={isAdded || pendingId === feed.id} onClick={() => void addCatalogItems([feed], feed.id)}>{pendingId === feed.id ? <Loader2 className="h-3 w-3 animate-spin" /> : isAdded ? t("added") : t("addSource")}</Button></article>; })}
+              {filteredFeeds.map((feed) => { const isAdded = existingUrls.has(feed.url); return <article key={feed.id} className="flex items-center gap-3 rounded-md border border-border bg-paper-raised p-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-accent2"><Rss className="h-3.5 w-3.5" aria-hidden="true" /></div><div className="min-w-0 flex-1"><div className="flex items-center gap-2"><h3 className="truncate text-xs font-medium text-ink">{feed.title}</h3><a href={feed.siteUrl} target="_blank" rel="noreferrer" className="text-ink-faint hover:text-accent2" aria-label={`${t("visitSource")}: ${feed.title}`}><ExternalLink className="h-3 w-3" aria-hidden="true" /></a></div><p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-ink-faint">{t(categoryLabels[feed.category])} · {t("sourceLanguage")}: {feed.language === "ar" ? t("arabic") : t("english")}</p></div><Button variant={isAdded ? "ghost" : "outline"} size="xs" disabled={isAdded || pendingId === feed.id} onClick={() => void addCatalogItems([feed], feed.id)}>{pendingId === feed.id ? <Loader2 className="h-3 w-3 animate-spin" /> : isAdded ? t("added") : t("addSource")}</Button></article>; })}
             </div>
             {!filteredFeeds.length && <p className="py-8 text-center text-xs text-ink-faint">{t("noRssResults")}</p>}
           </div>

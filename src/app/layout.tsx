@@ -40,6 +40,8 @@ const configuredSiteUrl =
   process.env.VERCEL_PROJECT_PRODUCTION_URL ??
   process.env.VERCEL_URL ??
   "https://al-rawi-rss.vercel.app";
+const debugUiOverlays = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_ENABLE_UI_DEBUG === "1";
+
 const metadataBase = new URL(
   configuredSiteUrl.startsWith("http") ? configuredSiteUrl : `https://${configuredSiteUrl}`,
 );
@@ -49,14 +51,14 @@ const socialImage = {
   type: "image/png",
   width: 1200,
   height: 630,
-  alt: "Al-Rawi — a calm bilingual reading space",
+  alt: "Al-Rawi — RSS reading and a quieter inbox",
 };
 
 export const metadata: Metadata = {
   metadataBase,
   title: "Al-Rawi",
   description:
-    "A calm bilingual RSS reader with RTL support and distraction-free reading.",
+    "Al-Rawi is a calm bilingual RSS reader and local-first inbox. On Android, collect app notifications, Gmail newsletters and YouTube subscriptions.",
   alternates: { canonical: "/" },
   applicationName: "Al-Rawi",
   manifest: "/manifest.json",
@@ -65,7 +67,7 @@ export const metadata: Metadata = {
     url: "/",
     title: "Al-Rawi",
     description:
-      "A calm bilingual RSS reader with RTL support and distraction-free reading.",
+      "Al-Rawi is a calm bilingual RSS reader and local-first inbox. On Android, collect app notifications, Gmail newsletters and YouTube subscriptions.",
     siteName: "Al-Rawi",
     images: [socialImage],
   },
@@ -73,7 +75,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Al-Rawi",
     description:
-      "A calm bilingual RSS reader with RTL support and distraction-free reading.",
+      "Al-Rawi is a calm bilingual RSS reader and local-first inbox. On Android, collect app notifications, Gmail newsletters and YouTube subscriptions.",
     images: [socialImage],
   },
   appleWebApp: {
@@ -115,12 +117,12 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: languageInitScript }} />
         <script dangerouslySetInnerHTML={{ __html: pwaHashInitScript }} />
-        {process.env.NODE_ENV === "development" && (
+        {debugUiOverlays && (
           <Script src="https://unpkg.com/react-scan/dist/auto.global.js" crossOrigin="anonymous" strategy="afterInteractive" />
         )}
-        {process.env.NODE_ENV === "development" && (
+        {debugUiOverlays && (
           <Script
-            src="//unpkg.com/react-grab/dist/index.global.js"
+            src="https://unpkg.com/react-grab/dist/index.global.js"
             crossOrigin="anonymous"
             strategy="beforeInteractive"
           />

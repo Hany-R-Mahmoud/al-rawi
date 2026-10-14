@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Archive, Bell, Bookmark, Check, ExternalLink, Mail, RefreshCw, Rss, Search, Tv } from "lucide-react";
+import { ArrowLeft, Archive, Bell, Bookmark, Check, ExternalLink, Inbox, Mail, Plug2, RefreshCw, Rss, Search, Tv } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useNative } from "@/hooks/use-native";
 import { Button } from "@/components/ui/button";
@@ -12,24 +12,18 @@ import type { InboxItem, InboxStatus, InboxSource, InboxView } from "@/lib/inbox
 import { syncDueSources } from "@/lib/native-sources";
 import { openExternalUrl } from "@/lib/open-url";
 
-const views: Array<{ view: InboxView; key: "inboxAll" | "inboxMissed" | "inboxSaved" | "inboxArchived" }> = [
-  { view: "today", key: "inboxAll" },
-  { view: "missed", key: "inboxMissed" },
-  { view: "saved", key: "inboxSaved" },
-  { view: "archived", key: "inboxArchived" },
-];
-const icons: Record<InboxSource, typeof Bell> = {
-  notification: Bell, rss: Rss, gmail: Mail, youtube: Tv,
-};
-const sourceKeys = {
-  notification: "inboxSourceNotification",
-  rss: "inboxSourceRss",
-  gmail: "inboxSourceGmail",
-  youtube: "inboxSourceYoutube",
-} as const;
+const views = [
+  { view: "today", label: "inboxAll" },
+  { view: "missed", label: "inboxMissed" },
+  { view: "saved", label: "inboxSaved" },
+  { view: "archived", label: "inboxArchived" },
+] as const;
+const icons: Record<InboxSource, typeof Bell> = { notification: Bell, rss: Rss, gmail: Mail, youtube: Tv };
+const sourceLabels = { notification: "inboxSourceNotification", rss: "inboxSourceRss", gmail: "inboxSourceGmail", youtube: "inboxSourceYoutube" } as const;
 
-export function InboxPane({ onBack }: { onBack: () => void }) {
+export function InboxPane({ onBack, onManageSources }: { onBack: () => void; onManageSources: () => void }) {
   const { t, language } = useLanguage();
+  const native = useNative();
   const [view, setView] = useState<InboxView>("today");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -40,39 +34,38 @@ export function InboxPane({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const native = useNative();
   const [captureEnabled, setCaptureEnabled] = useState(false);
-
-  const checkPermission = useCallback(() => {
+  const refreshPermission = useCallback(() => {
     if (isNative()) void isCaptureEnabled().then(setCaptureEnabled).catch(() => setCaptureEnabled(false));
   }, []);
 
   useEffect(() => {
-    checkPermission();
+    refreshPermission();
     void syncDueSources();
-    const visibility = () => {
-      if (document.visibilityState === "visible") { checkPermission(); void syncDueSources(); setRevision((v) => v + 1); }
+    const refresh = () => setRevision((n) => n + 1);
+    const visible = () => {
+      if (document.visibilityState === "visible") {
+        refreshPermission();
+        void syncDueSources();
+        refresh();
+      }
     };
-    const updated = () => setRevision((v) => v + 1);
-    let remove: (() => Promise<void>) | undefined;
-    let disposed = false;
-    void onNotification(updated).then((dispose) => {
-      if (disposed) void dispose();
-      else remove = dispose;
-    }).catch(() => {});
-    window.addEventListener("al-rawi:inbox-changed", updated);
-    document.addEventListener("visibilitychange", visibility);
+    let dispose: (() => Promise<void>) | undefined;
+    let closed = false;
+    void onNotification(refresh).then((cleanup) => { if (closed) void cleanup(); else dispose = cleanup; }).catch(() => {});
+    window.addEventListener("al-rawi:inbox-changed", refresh);
+    document.addEventListener("visibilitychange", visible);
     return () => {
-      disposed = true;
-      void remove?.();
-      window.removeEventListener("al-rawi:inbox-changed", updated);
-      document.removeEventListener("visibilitychange", visibility);
+      closed = true;
+      void dispose?.();
+      window.removeEventListener("al-rawi:inbox-changed", refresh);
+      document.removeEventListener("visibilitychange", visible);
     };
-  }, [checkPermission]);
+  }, [refreshPermission]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => { setDebounced(search); setPage(1); }, 250);
-    return () => window.clearTimeout(timer);
+    const timeout = window.setTimeout(() => { setDebounced(search); setPage(1); }, 220);
+    return () => window.clearTimeout(timeout);
   }, [search]);
 
   useEffect(() => {
@@ -88,120 +81,118 @@ export function InboxPane({ onBack }: { onBack: () => void }) {
   }, [view, debounced, page, revision, t]);
 
   const groups = useMemo(() => {
-    const dates = new Map<string, InboxItem[]>();
+    const sections = new Map<string, InboxItem[]>();
+    const formatter = new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
     for (const item of items) {
-      const key = new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-US", {
-        year: "numeric", month: "long", day: "numeric",
-      }).format(new Date(item.receivedAt));
-      if (!dates.has(key)) dates.set(key, []);
-      dates.get(key)?.push(item);
+      const date = formatter.format(new Date(item.receivedAt));
+      if (!sections.has(date)) sections.set(date, []);
+      sections.get(date)?.push(item);
     }
-    return Array.from(dates.entries());
+    return Array.from(sections.entries());
   }, [items, language]);
 
-  const setStatus = async (item: InboxItem, status: InboxStatus) => {
-    try {
-      await changeInboxStatus(item.id, status);
-      setRevision((value) => value + 1);
-    } catch { setError(t("inboxError")); }
+  const changeStatus = async (item: InboxItem, status: InboxStatus) => {
+    try { await changeInboxStatus(item.id, status); setRevision((n) => n + 1); }
+    catch { setError(t("inboxError")); }
   };
-
   const openItem = (item: InboxItem) => {
     if (item.url) {
-      try {
-        const url = new URL(item.url);
-        if (url.protocol === "https:" || url.protocol === "http:") void openExternalUrl(url.href);
-      } catch { /* Ignore invalid external URL. */ }
-    } else {
-      setExpanded((current) => current === item.id ? null : item.id);
-    }
+      void openExternalUrl(item.url).catch(() => setError(t("inboxError")));
+    } else setExpanded((current) => current === item.id ? null : item.id);
   };
+  const dateTime = new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-US", { hour: "numeric", minute: "2-digit" });
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-paper text-ink">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-paper px-4 py-3 sm:px-7">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1 text-xs">
-            <ArrowLeft aria-hidden className="h-4 w-4 rtl:rotate-180" />{t("inboxBack")}
-          </Button>
-          <h1 className="font-serif text-xl font-bold">{t("inbox")}</h1>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => setRevision((value) => value + 1)} aria-label={t("sourcesRefresh")}>
-          <RefreshCw aria-hidden className="h-4 w-4" />
-        </Button>
-      </header>
-      {native && !captureEnabled && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-paper-raised px-4 py-2 text-xs text-ink-subtle">
-          <span>{t("inboxPermissionOff")}</span>
-          <Button variant="outline" size="sm" onClick={() => void openListenerSettings().catch(() => setError(t("inboxError")))}>
-            {t("inboxEnable")}
-          </Button>
-        </div>
-      )}
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden px-4 py-5 sm:px-7">
-        <div className="mb-4 flex flex-wrap gap-1.5" role="group" aria-label={t("inbox")}>
-          {views.map(({ view: value, key }) => (
-            <Button key={value} size="sm" variant={view === value ? "default" : "outline"} aria-pressed={view === value}
-              onClick={() => { setView(value); setPage(1); setLoading(true); }}>
-              {t(key)}
+      <header className="shrink-0 border-b border-border bg-paper">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-start justify-between gap-3 px-5 py-5 sm:px-9 sm:py-7">
+          <div className="min-w-0">
+            <Button variant="ghost" size="sm" onClick={onBack} className="-ms-3 mb-3 gap-1 text-xs text-ink-subtle lg:hidden">
+              <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t("inboxBack")}
             </Button>
-          ))}
-        </div>
-        <div className="relative mb-5">
-          <Search aria-hidden className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
-          <Input aria-label={t("inboxSearch")} value={search} onChange={(event) => setSearch(event.target.value)}
-            placeholder={t("inboxSearch")} className="ps-9" />
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto pb-16">
-          {error && <p role="alert" className="mb-3 text-sm text-destructive">{error}</p>}
-          {loading && <p className="text-sm text-ink-faint" role="status">…</p>}
-          {!loading && items.length === 0 && (
-            <div className="rounded-xl border border-border bg-paper-raised px-4 py-12 text-center">
-              <Bell className="mx-auto mb-3 h-7 w-7 text-ink-faint" aria-hidden />
-              <p className="text-sm text-ink-subtle">{t("inboxEmpty")}</p>
-            </div>
-          )}
-          <div className="space-y-6">
-            {groups.map(([date, cards]) => (
-              <section key={date} aria-label={date}>
-                <h2 className="mb-2 border-b border-border pb-1.5 font-serif text-sm font-bold text-ink-subtle">{date}</h2>
-                <div className="space-y-2">
-                  {cards.map((item) => {
-                    const Icon = icons[item.source];
-                    const open = expanded === item.id;
-                    return (
-                      <article key={item.id} className="rounded-xl border border-border bg-paper-raised p-3 shadow-xs sm:p-4">
-                        <div className="flex gap-3">
-                          <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-paper">
-                            <Icon aria-hidden className="h-4 w-4 text-accent2" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink-faint">
-                              <span>{t(sourceKeys[item.source])}{item.packageName ? " · " + item.packageName : ""}</span>
-                              <time dateTime={new Date(item.receivedAt).toISOString()}>
-                                {new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(item.receivedAt))}
-                              </time>
-                            </div>
-                            <button type="button" onClick={() => openItem(item)} className="block w-full text-start">
-                              <h3 className="text-sm font-semibold leading-relaxed text-ink" dir="auto">{item.title || t("inboxSourceNotification")}</h3>
-                              <p className={open ? "mt-1 whitespace-pre-wrap text-xs leading-relaxed text-ink-subtle" : "mt-1 line-clamp-1 text-xs leading-relaxed text-ink-subtle"} dir="auto">{item.text}</p>
-                              {item.url && <ExternalLink className="mt-1 h-3 w-3 text-ink-faint" aria-hidden />}
-                            </button>
-                            <div className="mt-3 flex flex-wrap gap-1.5">
-                              {item.status !== "saved" && <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => void setStatus(item, "saved")}><Bookmark className="h-3 w-3" />{t("inboxSave")}</Button>}
-                              {item.status !== "done" && <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => void setStatus(item, "done")}><Check className="h-3 w-3" />{t("inboxDone")}</Button>}
-                              {item.status !== "archived" && <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => void setStatus(item, "archived")}><Archive className="h-3 w-3" />{t("inboxArchive")}</Button>}
-                              {item.status === "archived" && <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => void setStatus(item, "new")}>{t("inboxRestore")}</Button>}
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+            <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[.16em] text-accent2">{t("uiInboxEyebrow")}</p>
+            <h1 className={"text-3xl font-normal tracking-tight sm:text-4xl " + (language === "ar" ? "font-arabic" : "font-serif")}>{t("inbox")}</h1>
+            <p className="mt-2 max-w-lg text-sm leading-6 text-ink-subtle">{t("uiInboxSubtitle")}</p>
           </div>
+          <div className="flex shrink-0 items-center gap-1.5 pt-1">
+            <Button variant="outline" size="sm" className="min-h-10 gap-2 text-xs" onClick={onManageSources}><Plug2 className="h-4 w-4 text-accent2" aria-hidden />{t("uiManageSources")}</Button>
+            <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => setRevision((n) => n + 1)} aria-label={t("sourcesRefresh")}><RefreshCw className="h-4 w-4" aria-hidden /></Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto flex w-full max-w-6xl min-h-0 flex-1 flex-col px-5 pt-5 sm:px-9 sm:pt-7">
+        {native && !captureEnabled && (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-s-2 border-accent2 bg-paper-raised px-4 py-3">
+            <span className="inline-flex items-center gap-2 text-xs leading-6 text-ink-subtle"><Bell className="h-4 w-4 shrink-0 text-accent2" aria-hidden />{t("inboxPermissionOff")}</span>
+            <Button variant="outline" size="sm" onClick={() => void openListenerSettings().catch(() => setError(t("inboxError")))}>{t("inboxEnable")}</Button>
+          </div>
+        )}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+          <div role="group" aria-label={t("inbox")} className="flex flex-wrap items-center gap-1">
+            {views.map(({ view: value, label }) => <button key={value} type="button" aria-pressed={view === value}
+              onClick={() => { setView(value); setPage(1); setLoading(true); }}
+              className={"min-h-10 rounded-md px-3.5 text-xs font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 " + (view === value ? "bg-ink text-paper" : "text-ink-subtle hover:bg-muted hover:text-ink")}>
+              {t(label)}
+            </button>)}
+          </div>
+          <div className="relative w-full sm:w-[270px]">
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" aria-hidden />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} aria-label={t("inboxSearch")} placeholder={t("uiSearchInbox")} className="min-h-10 ps-9 text-xs" />
+          </div>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain pb-24 pt-4 lg:pb-12" aria-busy={loading}>
+          <div className="mb-4 flex items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-wider text-ink-faint">
+            <span>{t("uiInboxCount", { count: items.length })}</span><span>{t("uiInboxGuide")}</span>
+          </div>
+          {error && <p role="alert" className="mb-4 border-s-2 border-destructive bg-muted/50 px-3 py-2 text-xs text-destructive">{error}</p>}
+          {loading && <p role="status" className="py-8 text-sm text-ink-subtle">{t("uiLoadingInbox")}</p>}
+          {!loading && items.length === 0 && (
+            <section className="mx-auto flex max-w-sm flex-col items-center gap-4 px-4 py-16 text-center">
+              <Inbox className="h-10 w-10 text-accent2" strokeWidth={1.2} aria-hidden />
+              <h2 className={"text-2xl text-ink " + (language === "ar" ? "font-arabic" : "font-serif")}>{t("inboxEmpty")}</h2>
+              <p className="text-sm leading-7 text-ink-subtle">{t("uiInboxEmptyHelp")}</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button variant="default" onClick={onBack} className="gap-1.5"><Rss className="h-4 w-4" aria-hidden />{t("uiReading")}</Button>
+                <Button variant="outline" onClick={onManageSources}>{t("uiManageSources")}</Button>
+              </div>
+            </section>
+          )}
+          {groups.map(([date, cards]) => (
+            <section key={date} aria-label={date} className="mb-8">
+              <h2 className="border-b border-border pb-2 font-serif text-base font-normal text-ink-subtle">{date}</h2>
+              <ul className="divide-y divide-border/70">
+                {cards.map((item) => {
+                  const Icon = icons[item.source];
+                  const expandedItem = expanded === item.id;
+                  return <li key={item.id} className="group py-4 sm:py-5">
+                    <article className="flex items-start gap-3 sm:gap-5">
+                      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-paper-raised text-accent2"><Icon className="h-4 w-4" aria-hidden /></span>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] text-ink-faint">
+                          <span className="font-semibold text-ink-subtle">{t(sourceLabels[item.source])}</span>
+                          {item.packageName && <span className="max-w-[180px] truncate">{item.packageName}</span>}
+                          <span aria-hidden>·</span>
+                          <time dateTime={new Date(item.receivedAt).toISOString()}>{dateTime.format(new Date(item.receivedAt))}</time>
+                          {item.status === "saved" && <span className="inline-flex items-center gap-1 text-accent2"><Bookmark className="h-3 w-3" aria-hidden />{t("inboxSaved")}</span>}
+                        </div>
+                        <button type="button" onClick={() => openItem(item)} className="w-full text-start focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
+                          <h3 dir="auto" className="text-sm font-semibold leading-6 text-ink sm:text-base">{item.title || t("inboxSourceNotification")}{item.url && <ExternalLink className="ms-2 inline h-3.5 w-3.5 text-ink-faint" aria-hidden />}</h3>
+                          {item.text && <p dir="auto" className={"mt-1 max-w-3xl whitespace-pre-wrap text-xs leading-6 text-ink-subtle sm:text-sm " + (expandedItem ? "" : "line-clamp-2")}>{item.text}</p>}
+                        </button>
+                        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                          {item.status !== "saved" && <Button variant="outline" size="sm" className="min-h-9 gap-1.5 text-xs" onClick={() => void changeStatus(item, "saved")}><Bookmark className="h-3.5 w-3.5" aria-hidden />{t("inboxSave")}</Button>}
+                          {item.status !== "done" && <Button variant="ghost" size="sm" className="min-h-9 gap-1.5 text-xs" onClick={() => void changeStatus(item, "done")}><Check className="h-3.5 w-3.5" aria-hidden />{t("inboxDone")}</Button>}
+                          {item.status !== "archived" ? <Button variant="ghost" size="sm" className="min-h-9 gap-1.5 text-xs" onClick={() => void changeStatus(item, "archived")}><Archive className="h-3.5 w-3.5" aria-hidden />{t("inboxArchive")}</Button>
+                            : <Button variant="ghost" size="sm" className="min-h-9 text-xs" onClick={() => void changeStatus(item, "new")}>{t("inboxRestore")}</Button>}
+                        </div>
+                      </div>
+                    </article>
+                  </li>;
+                })}
+              </ul>
+            </section>
+          ))}
           {hasMore && <div className="py-4 text-center"><Button variant="outline" onClick={() => { setPage((n) => n + 1); setLoading(true); }}>{t("inboxMore")}</Button></div>}
         </div>
       </div>

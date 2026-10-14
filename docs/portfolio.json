@@ -6,8 +6,8 @@
     "ar": "Al-Rawi"
   },
   "summary": {
-    "en": "Al-Rawi is a bilingual local-first RSS reader extended on a feature branch with an Android notification inbox and local Google-source import; device verification pending.",
-    "ar": "الراوي قارئ RSS ثنائي اللغة مع تحديث لصندوق إشعارات أندرويد واستيراد مصادر جوجل محليًا؛ اختبار الجهاز معلّق."
+    "en": "Al-Rawi is a bilingual local-first RSS reading workspace with a unified inbox and optional Android notification capture plus Google-source imports that require real-device/account verification.",
+    "ar": "الراوي مساحة قراءة ثنائية اللغة لخلاصات RSS والوارد الموحد، مع التقاط إشعارات أندرويد واستيراد مصادر جوجل اختياريًا بعد اختبار الجهاز والحسابات."
   },
   "status": "showcase",
   "portfolio": true,
@@ -59,11 +59,15 @@
     {
       "en": "Feature branch: Gmail label and YouTube subscription import via real Google OAuth and native token encryption.",
       "ar": "فرع تطوير: استيراد تصنيفات جيميل واشتراكات يوتيوب عبر OAuth حقيقي مع تشفير الرموز."
+    },
+    {
+      "en": "Paper & Ink editorial landing and workspace, clear Reading/Inbox navigation, accessible settings, sources, and native permission onboarding.",
+      "ar": "واجهة Paper & Ink تحريرية مع تنقل واضح بين القراءة والوارد وتحسينات للإعدادات والمصادر وصلاحيات أندرويد."
     }
   ],
   "progress": {
-    "en": "Revival feature branch implementation; real device and Google account acceptance still pending.",
-    "ar": "تنفيذ تحديث الراوي على فرع تطوير؛ اختبار الجهاز وحسابات جوجل الحقيقية ما زال معلّقًا."
+    "en": "UI refinement on its own branch; browser and Android acceptance remain separate.",
+    "ar": "تطوير الواجهة على فرع منفصل؛ مراجعة المتصفح واعتماد نسخة أندرويد مرحلتان منفصلتان."
   },
   "issues": [
     {

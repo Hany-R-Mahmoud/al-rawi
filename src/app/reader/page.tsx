@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { ArticleList } from "@/components/article-list";
 import { BrandLogo } from "@/components/brand-logo";
 import { InboxPane } from "@/components/inbox-pane";
+import { WorkspaceHeader } from "@/components/workspace-header";
+import type { SettingsSection } from "@/components/settings-dialog";
 import { CaptureOnboarding } from "@/components/capture-onboarding";
 import { upsertInboxItems, rssInboxItems } from "@/lib/inbox-store";
 import { FeedList } from "@/components/feed-list";
@@ -92,6 +94,11 @@ export default function Home() {
   const [showSearch, setShowSearch] = useState(false);
   const [showInbox, setShowInbox] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>("appearance");
+  const openSettings = (section: SettingsSection = "appearance") => {
+    setSettingsSection(section);
+    setShowSettings(true);
+  };
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [loading, setLoading] = useState(true);
   const [readerLoading, setReaderLoading] = useState(false);
@@ -276,8 +283,16 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-[100dvh] h-auto overflow-visible bg-paper text-ink pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:h-[100dvh] lg:overflow-hidden lg:pb-0">
-      {showInbox ? <InboxPane onBack={() => setShowInbox(false)} /> : <>
+    <div className="flex min-h-[100dvh] flex-col bg-paper text-ink pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:h-[100dvh] lg:overflow-hidden lg:pb-0">
+      <WorkspaceHeader
+        active={showInbox ? "inbox" : "reader"}
+        onReader={() => setShowInbox(false)}
+        onInbox={() => { setShowInbox(true); setShowMobileNav(false); }}
+        onSources={() => openSettings("sources")}
+        onSettings={() => openSettings("appearance")}
+      />
+      <div className="relative flex min-h-0 flex-1">
+      {showInbox ? <InboxPane onBack={() => setShowInbox(false)} onManageSources={() => openSettings("sources")} /> : <>
       {showMobileNav && <button type="button" className="fixed inset-0 z-40 bg-black/40 lg:hidden" aria-label={t("closeFeeds")} onClick={() => setShowMobileNav(false)} />}
       <aside className={`fixed inset-y-0 z-50 w-72 bg-paper transition-transform lg:static lg:translate-x-0 ${language === "ar" ? "right-0 border-l border-border" : "left-0 border-r border-border"} ${showMobileNav ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"}`}>
         <FeedList feeds={feeds} selectedFeedId={selectedFeedId} onSelectFeed={(id) => { setSelectedFeedId(id); setShowMobileNav(false); }} onRefresh={() => void refreshFeeds(selectedFeedId ? feeds.filter((feed) => feed.id === selectedFeedId) : feeds)} onDeleteFeed={deleteFeed} onAddFeed={addFeed} onAddCatalogFeeds={addCatalogFeeds} />
@@ -285,8 +300,8 @@ export default function Home() {
       <section className="flex min-w-0 flex-1 flex-col lg:flex-row">
         <div className={`min-w-0 flex-1 flex-col lg:flex lg:w-[380px] lg:flex-none ${language === "ar" ? "border-l border-border" : "border-r border-border"} ${selectedArticle ? "hidden" : "flex"}`}>
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-paper/95 px-3 py-2.5 backdrop-blur-md">
-            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setShowMobileNav(true)} aria-label={t("openFeeds")}><Menu className="h-4 w-4" /></Button><BrandLogo className="h-16 w-16" /><Button variant="ghost" size="sm" className="hidden gap-1 lg:inline-flex" onClick={() => setShowInbox(true)}><Inbox className="h-4 w-4" />{t("inbox")}</Button></div>
-            <div className="flex items-center gap-0.5"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowSearch((current) => !current)} aria-label={t("search")}><Search className="h-4 w-4" /></Button><div className="hidden items-center gap-0.5 sm:flex"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label={t("toggleTheme")}>{themeReady && resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</Button><PwaInstallMenuAction /><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowSettings(true)} aria-label={t("settings")}><Settings2 className="h-4 w-4" /></Button></div></div>
+            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setShowMobileNav(true)} aria-label={t("openFeeds")}><Menu className="h-4 w-4" /></Button><BrandLogo className="h-14 w-14 lg:hidden" /><span className="hidden font-serif text-lg text-ink lg:inline">{t("articles")}</span><Button variant="outline" size="sm" className="gap-1 lg:hidden" onClick={() => setShowInbox(true)}><Inbox className="h-4 w-4" />{t("inbox")}</Button></div>
+            <div className="flex items-center gap-0.5"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowSearch((current) => !current)} aria-label={t("search")}><Search className="h-4 w-4" /></Button><div className="hidden items-center gap-0.5 sm:flex"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label={t("toggleTheme")}>{themeReady && resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</Button><PwaInstallMenuAction /><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openSettings("appearance")} aria-label={t("settings")}><Settings2 className="h-4 w-4" /></Button></div></div>
           </header>
           {showSearch && <div className="border-b border-border px-3 py-2"><div className="relative"><Search className={`absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-faint ${language === "ar" ? "right-2.5" : "left-2.5"}`} /><Input autoFocus placeholder={t("searchPlaceholder")} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className={`h-8 text-xs ${language === "ar" ? "pr-8 pl-2.5" : "pl-8 pr-2.5"}`} /><button type="button" className={`absolute top-1/2 -translate-y-1/2 ${language === "ar" ? "left-2" : "right-2"}`} onClick={() => { setSearchQuery(""); setShowSearch(false); }} aria-label={t("closeSearch")}><X className="h-3 w-3 text-ink-faint" /></button></div></div>}
           <div className="flex items-center justify-between border-b border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-ink-faint"><span>{selectedFeedId ? feeds.find((feed) => feed.id === selectedFeedId)?.title : t("allArticles")}</span><span>{visibleArticles.length}</span></div>
@@ -300,15 +315,16 @@ export default function Home() {
         {selectedArticle && <main className="flex min-w-0 flex-1 flex-col bg-paper-raised pb-[calc(env(safe-area-inset-bottom)+4.5rem)] lg:hidden"><div className="border-b border-border px-3 py-2"><Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => setSelectedArticleId(null)}>{language === "ar" ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}{t("backToArticles")}</Button></div><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => { if (selectedArticle.url) void openExternalUrl(selectedArticle.url); }} onMarkRead={() => markRead(selectedArticle.id)} /></main>}
       </section>
       </>}
+      </div>
       <CaptureOnboarding onEnable={() => setShowInbox(true)} />
-      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} />
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} section={settingsSection} onSectionChange={setSettingsSection} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} />
       <MobileBottomNav
         activeSection={mobileActiveSection}
         onOpenFeeds={() => { setShowInbox(false); setSelectedArticleId(null); setShowSearch(false); setShowMobileNav(true); }}
         onOpenArticles={() => { setShowInbox(false); setSelectedArticleId(null); setShowMobileNav(false); }}
         onOpenInbox={() => { setShowInbox(true); setShowMobileNav(false); }}
         onOpenSearch={() => { setShowInbox(false); setSelectedArticleId(null); setShowMobileNav(false); setShowSearch(true); }}
-        onOpenSettings={() => { setShowMobileNav(false); setShowSettings(true); }}
+        onOpenSettings={() => { setShowMobileNav(false); openSettings("appearance"); }}
       />
       {refreshing && <div className="pointer-events-none fixed bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border border-border bg-paper-raised px-3 py-1.5 text-xs text-ink-subtle shadow-sm"><Rss className="me-1 inline h-3 w-3 animate-pulse" />{t("refreshingFreshArticles")}</div>}
     </div>

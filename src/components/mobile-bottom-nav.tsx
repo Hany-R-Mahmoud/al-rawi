@@ -34,7 +34,7 @@ export function MobileBottomNav({
   return (
     <nav
       aria-label={t("mobileNavigation")}
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-paper/95 px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom)+0.375rem)] backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-paper/95 px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] backdrop-blur-md lg:hidden"
     >
       <div className="mx-auto flex max-w-md items-center gap-1">
         {items.map(({ section, label, icon: Icon, onSelect }) => {
@@ -44,10 +44,10 @@ export function MobileBottomNav({
               key={section}
               type="button"
               aria-pressed={active}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${active ? "bg-muted text-ink" : "text-ink-faint hover:bg-muted/70 hover:text-ink"}`}
+              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-md px-1.5 py-1.5 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${active ? "bg-muted text-ink" : "text-ink-faint hover:bg-muted/70 hover:text-ink"}`}
               onClick={onSelect}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
+              <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
               <span className="max-w-full truncate">{label}</span>
             </button>
           );

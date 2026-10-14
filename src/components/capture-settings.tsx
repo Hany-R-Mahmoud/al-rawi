@@ -19,13 +19,13 @@ export function CaptureSettings() {
     document.addEventListener("visibilitychange", visibility);
     return () => document.removeEventListener("visibilitychange", visibility);
   }, [refresh]);
-  if (!native) return null;
+  if (!native) return <p className="border-s-2 border-accent2 bg-muted/45 px-4 py-3 text-sm leading-6 text-ink-subtle">{t("uiCaptureNativeOnly")}</p>;
   return (
-    <section className="space-y-2">
-      <h3 className="text-sm font-semibold">{t("inboxPermissionSettings")}</h3>
+    <section className="space-y-4 rounded-md border border-border bg-paper-raised p-5">
+      <h3 className="font-serif text-lg text-ink">{t("inboxPermissionSettings")}</h3>
       <p className="text-xs text-ink-subtle">{t("inboxPermissionHint")}</p>
-      <p className="text-xs text-ink-subtle">{enabled ? t("inboxPermissionOn") : t("inboxPermissionOff")}</p>
-      <Button size="sm" variant="outline" onClick={() => void openListenerSettings()}>{t("inboxEnable")}</Button>
+      <p role="status" className={"inline-flex rounded-md px-3 py-2 text-xs font-medium " + (enabled ? "bg-accent2/10 text-accent2" : "bg-muted text-ink-subtle")}>{enabled ? t("inboxPermissionOn") : t("inboxPermissionOff")}</p>
+      <Button size="sm" variant="outline" className="min-h-10" onClick={() => void openListenerSettings()}>{t("inboxEnable")}</Button>
     </section>
   );
 }
