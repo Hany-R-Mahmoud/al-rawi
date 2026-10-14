@@ -4,7 +4,7 @@
  * the Gradle wrapper then compiles and packages the Android application.
  */
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, rmSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,6 +37,21 @@ try {
   }
 
   run(isWindows ? "npm.cmd" : "npm", ["run", "build:capacitor"]);
+
+  // Catch the Capacitor HTML5-fallback regression at build time.
+  // Extensionless /reader/ requests resolve back to the landing index.html
+  // instead of the pre-rendered Reader inside the Android WebView.
+  const landingHtml = join(root, "out", "index.html");
+  const readerHtml = join(root, "out", "reader", "index.html");
+  if (!existsSync(landingHtml) || !existsSync(readerHtml) ||
+      !readFileSync(landingHtml, "utf8").includes('href="/reader/index.html"')) {
+    throw new Error(
+      "Capacitor navigation assets are invalid: expected real reader/index.html " +
+      "and a landing link to /reader/index.html, not an extensionless route."
+    );
+  }
+  console.log("Capacitor navigation assets verified.");
+
   run(gradlew, ["--no-daemon", ":app:assembleDebug"], android);
 
   if (!existsSync(apk) || statSync(apk).size < 100_000) {

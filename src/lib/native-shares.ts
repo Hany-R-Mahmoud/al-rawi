@@ -13,6 +13,13 @@ const shared = registerPlugin<SharedPlugin>("SharedContent");
 export const isNative = () => Capacitor.isNativePlatform();
 
 /** Native queue is only acknowledged AFTER IndexedDB successfully persists every item. */
+/** Whether a user-initiated Android Share intent is queued for import. */
+export async function hasPendingShares(): Promise<boolean> {
+  if (!isNative()) return false;
+  const { items } = await shared.listPending();
+  return items.length > 0;
+}
+
 export async function importPendingShares(): Promise<number> {
   if (!isNative()) return 0;
   const { items } = await shared.listPending();

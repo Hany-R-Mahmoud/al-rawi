@@ -75,3 +75,42 @@ Do not use a web client secret. The debug APK is not a Play Store release APK.
 - [ ] With configured real Google accounts, connect Gmail and YouTube, select a Gmail label, refresh, read an email, watch a video after explicit playback, and disconnect.
 - [ ] Check EN/AR, RTL, mobile, desktop, theme, OPML, Reader and PWA behavior.
 - [ ] Verify no device-wide notifications are captured or stored.
+
+## Android native page routing regression (corrected after PR #4 initial APK)
+
+**Root cause:** Capacitor Android's WebViewLocalServer defaults to HTML5 mode.
+Requests to extensionless paths such as /reader/ resolve to the root index.html
+rather than the pre-rendered out/reader/index.html. The previous automatic
+NativeEntryRedirect navigated to /reader/ on every mount, which loaded the
+Landing again and immediately redirected. On a local Android-server simulation
+of the broken APK this produced 81 main-frame navigations in about 3 seconds,
+visible flickering and unusable workspace/language controls.
+
+**Fix:** The landing now stays mounted on normal native launches. Each native
+internal link uses an explicit static HTML asset URL (/reader/index.html to
+enter, /index.html to return). Browser/PWA navigation still uses Next.js URLs
+(/reader and /). Only an actual queued Android Share redirects automatically,
+once, directly to /reader/index.html. This also handles a new Share intent
+when the Landing Page is already open, by listening for explicit native
+shareReceived events. On native start the old PWA service
+worker and only its static caches are unregistered/removed; subscriptions,
+IndexedDB, reading state and other user data are preserved.
+
+Verification after this fix:
+- [x] Native-like browser simulation: stable landing after 3.5 seconds, no
+      repeated redirects (previously 81 navigations).
+- [x] EN <-> AR produces translated page text and the correct LTR/RTL direction.
+- [x] Light/dark toggle works without page reloads.
+- [x] Both Open Workspace and Enter your reading space open the real Reader
+      from a native-like static export server (Capacitor extensionless
+      fallback simulated).
+- [x] Browser errors and failed asset responses: zero during this navigation.
+- [x] Gradle Android Debug APK compiles with corrected static assets.
+- [ ] Physical Android device: verify the same behavior after installing the
+      new APK and after upgrading an existing installation.
+- [ ] Physical Android Share -> Al-Rawi: confirm a queued share opens Reader.
+- [ ] Web/PWA routes: verify in browser on standard Next.js server.
+
+This simulated test validates the actual local-server fallback behavior but
+does not emulate every Android WebView / OS condition. Do not merge based
+only on a successful APK compilation; run the physical-device checks.
