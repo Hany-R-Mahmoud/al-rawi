@@ -106,8 +106,8 @@
   --paper-raised: hsl(0 0% 100%);
   --ink: hsl(20 14% 8%);
   --ink-subtle: hsl(20 8% 30%);
-  --ink-faint: hsl(20 6% 55%);
-  --accent2: hsl(15 80% 45%);
+  --ink-faint: hsl(20 6% 42%);
+  --accent2: hsl(15 80% 42%);
   --background: var(--paper);
   --foreground: var(--ink);
   --card: var(--paper-raised);
@@ -367,4 +367,10 @@ kbd {
   font-family: var(--font-mono);
   background: var(--muted);
   border: 1px solid var(--border);
+}
+
+
+/* Arabic controls need an actual Arabic font even on hosts without system Arabic fonts. */
+html[dir="rtl"] body {
+  font-family: var(--font-naskh), var(--font-geist-sans), system-ui, sans-serif;
 }

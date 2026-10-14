@@ -57,3 +57,42 @@ Use tonal paper surfaces and thin semantic borders. Avoid decorative shadows and
 - Target WCAG 2.2 AA.
 - Preserve visible focus, keyboard navigation, readable contrast, and `prefers-reduced-motion` behavior.
 - Accepted debt: the hosted web build needs a stateless server proxy because arbitrary RSS sources do not reliably permit browser CORS. A desktop or extension shell can remove that dependency later if truly serverless local fetching becomes a requirement.
+
+---
+
+## Revival UI revision — Impeccable design contract (October 2026)
+
+The redesign extends the existing **Paper & Ink** identity; it does not replace Al-Rawi with generic SaaS styling.
+
+### Product truth and style
+
+- The product is **a quieter reading space**. Present RSS honestly on web/PWA; explicitly mark native Android notification capture and Gmail/YouTube as Android-only integrations.
+- Preserve the actual logo, warm paper and ink, and restrained burnt-terracotta accent. Raise small-text contrast rather than inventing a new palette.
+- Use generous editorial whitespace and a photographic hero image. No decorative CSS illustrations, staged fake notifications, fake account balances, or pretend connected sources.
+- Serif for editorial headings; sans for controls; Noto Naskh/Amiri for Arabic. All UI supports light/dark, RTL and mixed script.
+- The web landing describes the full product, while /reader is a single workspace with Reading/Inbox top-level navigation. Keep mobile bottom navigation.
+- Settings separate Preferences, Sources and Notifications; Inbox clearly provides source management and triage actions.
+- Empty states explain real next actions. Native-only controls remain visibly unavailable on the web instead of simulating a login.
+- Use visible keyboard focus, non-hover-dependent controls and comfortable mobile tap targets. Motion should remain restrained and respect reduced-motion preferences.
+
+### AI-generated visual asset
+
+public/visuals/reading-desk.webp is an original generated editorial desk still life, exported as a small WebP for local loading. This **replaces the former CSS-drawn orbital hero**. Internal UI relies on actual lists, forms, controls and meaningful icons, not images of fictional interactive screens.
+
+### Component map
+
+| Surface | Component | Responsibility |
+|---|---|---|
+| Landing | landing/page.tsx | Welcome, capability/availability matrix, how-to, privacy, CTA |
+| Desktop workspace | WorkspaceHeader | Persistent Reading/Inbox/Settings/Sources |
+| Reading workspace | FeedList, ArticleList, ReaderPane | Preserved local-first RSS workflow |
+| Unified Inbox | InboxPane | Search, date grouping, triage and state-specific empty view |
+| Mobile | MobileBottomNav | Five usable navigation destinations |
+| Settings | SettingsDialog | Preferences, Sources and Notifications tabs |
+| Android permissions | CaptureOnboarding, CaptureSettings | Optional consent and return path |
+| Google sources | SourcesSettings | Native OAuth, label selection and honest disabled web UI |
+| Feed discovery | FeedDiscoveryDialog | Starter packs, catalog and URL feed setup |
+
+### Impeccable audit
+
+The Impeccable CLI was installed in the local dev environment and used for a page scan and component review. The scan highlighted small type, borderline contrast and repeated boilerplate headline kickers. Updates improved legibility, contrast and hierarchy. The vendored skill files are **not a runtime dependency**. See docs/revival-ui-audit.md for the screen-by-screen review.
