@@ -1,7 +1,7 @@
 {
   "name": "Al-Rawi",
   "short_name": "Al-Rawi",
-  "description": "Al-Rawi: calm bilingual RSS reading and a local inbox. Android adds notifications and connected Google sources.",
+  "description": "Al-Rawi: calm bilingual RSS reading and a local inbox. Android adds optional Google sources and explicit sharing, without notification access.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

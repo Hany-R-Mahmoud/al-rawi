@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowDown, ArrowRight, ArrowUpRight, BellRing, BookOpenText, BookmarkCheck, Check, Inbox, Languages, Mail, Moon, Rss, ShieldCheck, Smartphone, Sun, Tv } from "lucide-react";
+import { AppRouteLink } from "@/components/app-route-link";
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpenText, BookmarkCheck, Check, Inbox, Languages, Mail, Moon, Rss, Share2, ShieldCheck, Smartphone, Sun, Tv } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { BrandLogo } from "@/components/brand-logo";
@@ -11,7 +11,7 @@ import StandaloneVisitorCounter from "@/components/StandaloneVisitorCounter";
 
 const sources = [
   { icon: Rss, name: "revRssName", detail: "revRssDetail", availability: "revAllPlatforms" },
-  { icon: BellRing, name: "revNotificationsName", detail: "revNotificationsDetail", availability: "revAndroidOnly" },
+  { icon: Share2, name: "revNotificationsName", detail: "revNotificationsDetail", availability: "revAllPlatforms" },
   { icon: Mail, name: "revGmailName", detail: "revGmailDetail", availability: "revAndroidOnly" },
   { icon: Tv, name: "revYoutubeName", detail: "revYoutubeDetail", availability: "revAndroidOnly" },
 ] as const;
@@ -36,27 +36,27 @@ export default function LandingPage() {
       <a href="#content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-paper focus:p-4">{t("revSkipToContent")}</a>
       <header className="relative z-10 border-b border-border">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-5 py-3 sm:px-8 lg:px-12">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label={t("appName")}>
+          <AppRouteLink page="home" className="flex shrink-0 items-center gap-2.5" aria-label={t("appName")}>
             <BrandLogo size="landing" priority className="h-14 w-14 sm:h-16 sm:w-16" /><span className="font-serif text-lg font-semibold text-ink sm:text-xl">Al-Rawi</span>
             <span className="hidden border-s border-border ps-3 font-mono text-[11px] tracking-[0.12em] text-ink-faint lg:inline">{t("revBrandCaption")}</span>
-          </Link>
+          </AppRouteLink>
           <nav className="hidden items-center gap-7 text-sm text-ink-subtle md:flex" aria-label={t("revMainNav")}>
             <a className="transition-colors hover:text-ink" href="#sources">{t("revNavSources")}</a>
             <a className="transition-colors hover:text-ink" href="#how-it-works">{t("landingHowItWorks")}</a>
             <a className="transition-colors hover:text-ink" href="#privacy">{t("revNavPrivacy")}</a>
           </nav>
           <div className="flex items-center gap-1 sm:gap-2">
-            <button type="button" onClick={() => setLanguage(language === "ar" ? "en" : "ar")} aria-label={t("landingLanguageLabel")}
+            <button type="button" disabled={!ready} onClick={() => setLanguage(language === "ar" ? "en" : "ar")} aria-label={t("landingLanguageLabel")}
               className="inline-flex min-h-10 items-center gap-1 rounded-md px-2 text-xs font-semibold text-ink-subtle transition hover:bg-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
               <Languages className="h-4 w-4" aria-hidden /><span className={language === "ar" ? "" : "font-arabic text-base"}>{language === "ar" ? "EN" : "عربي"}</span>
             </button>
-            <button type="button" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label={t("landingThemeLabel")}
+            <button type="button" disabled={!ready} onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label={t("landingThemeLabel")}
               className="flex h-10 w-10 items-center justify-center rounded-md text-ink-subtle transition hover:bg-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
               {ready && resolvedTheme === "dark" ? <Sun className="h-[18px] w-[18px]" aria-hidden /> : <Moon className="h-[18px] w-[18px]" aria-hidden />}
             </button>
-            <Link href="/reader" className="ms-1 inline-flex min-h-10 items-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-paper transition hover:bg-accent2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 sm:px-5 sm:text-sm">
+            <AppRouteLink page="reader" className="ms-1 inline-flex min-h-10 items-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-paper transition hover:bg-accent2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 sm:px-5 sm:text-sm">
               {t("revOpenWorkspace")} <ArrowUpRight className="h-4 w-4" aria-hidden />
-            </Link>
+            </AppRouteLink>
           </div>
         </div>
       </header>
@@ -66,9 +66,9 @@ export default function LandingPage() {
           <h1 className={"max-w-[760px] text-[clamp(3.2rem,5.8vw,6.6rem)] font-normal leading-[1.02] tracking-[-0.06em] text-balance " + editorial}>{t("revHeroTitle")}</h1>
           <p className="mt-6 max-w-xl text-base leading-8 text-ink-subtle sm:text-lg">{t("revHeroDescription")}</p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
-            <Link href="/reader" className="inline-flex min-h-12 items-center gap-3 rounded-md bg-ink px-5 text-sm font-semibold text-paper transition hover:bg-accent2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
+            <AppRouteLink page="reader" className="inline-flex min-h-12 items-center gap-3 rounded-md bg-ink px-5 text-sm font-semibold text-paper transition hover:bg-accent2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
               {t("revPrimaryCta")} <ArrowUpRight className="h-4 w-4" aria-hidden />
-            </Link>
+            </AppRouteLink>
             <a href="#sources" className="inline-flex min-h-12 items-center gap-2 rounded-md px-4 text-sm font-medium text-ink-subtle underline decoration-border underline-offset-4 transition hover:text-ink">{t("revSecondaryCta")} <ArrowDown className="h-4 w-4" aria-hidden /></a>
           </div>
           <div className="mt-12 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-5 text-xs leading-5 text-ink-faint">
@@ -119,7 +119,7 @@ export default function LandingPage() {
 
             <h2 className={editorial + " mt-4 max-w-sm text-4xl sm:text-5xl"}>{t("revHowTitle")}</h2>
             <p className="mt-5 max-w-sm text-sm leading-7 text-ink-subtle">{t("revHowDescription")}</p>
-            <Link href="/reader" className="mt-7 inline-flex items-center gap-2 border-b border-accent2 pb-1.5 text-sm font-semibold text-ink transition hover:text-accent2">{t("revOpenWorkspace")} <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden /></Link>
+            <AppRouteLink page="reader" className="mt-7 inline-flex items-center gap-2 border-b border-accent2 pb-1.5 text-sm font-semibold text-ink transition hover:text-accent2">{t("revOpenWorkspace")} <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden /></AppRouteLink>
           </div>
           <ol className="border-t border-border">
             {steps.map((step, index) => {
@@ -143,7 +143,7 @@ export default function LandingPage() {
 
       <section className="mx-auto flex max-w-[1440px] flex-col justify-between gap-7 px-5 py-16 sm:px-8 sm:py-20 lg:flex-row lg:items-end lg:px-12">
         <div><h2 className={editorial + " mt-4 max-w-2xl text-4xl sm:text-5xl"}>{t("revFinalTitle")}</h2></div>
-        <Link href="/reader" className="inline-flex min-h-12 shrink-0 items-center gap-3 self-start rounded-md bg-ink px-6 text-sm font-semibold text-paper transition hover:bg-accent2 hover:text-white lg:self-auto">{t("revPrimaryCta")} <ArrowUpRight className="h-4 w-4" aria-hidden /></Link>
+        <AppRouteLink page="reader" className="inline-flex min-h-12 shrink-0 items-center gap-3 self-start rounded-md bg-ink px-6 text-sm font-semibold text-paper transition hover:bg-accent2 hover:text-white lg:self-auto">{t("revPrimaryCta")} <ArrowUpRight className="h-4 w-4" aria-hidden /></AppRouteLink>
       </section>
       <footer className="border-t border-border px-5 py-6 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 text-[11px] text-ink-faint"><span className="font-serif text-sm text-ink">Al-Rawi</span><span>{t("revFooter")}</span></div>

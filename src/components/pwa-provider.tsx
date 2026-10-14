@@ -1,6 +1,6 @@
 "use client";
 
-import { isNative } from "@/lib/native-notifications";
+import { isNative } from "@/lib/native-shares";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   buildAndroidIntentUrl,

@@ -1,53 +1,70 @@
 import "fake-indexeddb/auto";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { changeInboxStatus, inboxMatches, listInbox, rssInboxItems, upsertInboxItems } from "./inbox-store";
+import { changeInboxStatus, deleteInboxItem, getInboxItem, inboxMatches, listInbox, rssInboxItems, setInboxRead, upsertInboxItems } from "./inbox-store";
 import type { InboxItem } from "./inbox-types";
 
-function item(id: string, opts: Partial<InboxItem> = {}): InboxItem {
-  return { id, source: "rss", title: "News " + id, text: "Some preview", receivedAt: Date.now(), status: "new", ...opts };
+const now = 1780000000000;
+function item(id: string, override: Partial<InboxItem> = {}): InboxItem {
+  return { id, source: "rss", title: "News " + id, text: "Some preview", receivedAt: now, readAt: null, status: "new", ...override };
 }
 
-test("missed means unread older than 48 hours only", () => {
-  const now = Date.now();
-  assert.equal(inboxMatches(item("old", { receivedAt: now - 49 * 3600_000 }), "missed", "", now), true);
-  assert.equal(inboxMatches(item("recent", { receivedAt: now - 2 * 3600_000 }), "missed", "", now), false);
-  assert.equal(inboxMatches(item("done", { receivedAt: now - 49 * 3600_000, status: "done" }), "missed", "", now), false);
+test("read and unread independent of saved/done", () => {
+  assert.equal(inboxMatches(item("one"), "unread", ""), true);
+  assert.equal(inboxMatches(item("two", { status: "saved", readAt: null }), "unread", ""), true);
+  assert.equal(inboxMatches(item("three", { status: "saved", readAt: now }), "saved", ""), true);
+  assert.equal(inboxMatches(item("four", { status: "done", readAt: now }), "read", ""), true);
+  assert.equal(inboxMatches(item("five", { status: "archived" }), "all", ""), false);
 });
 
-test("saved, archived and global search filter predictably", () => {
-  assert.equal(inboxMatches(item("saved", { status: "saved" }), "saved", ""), true);
-  assert.equal(inboxMatches(item("archived", { status: "archived" }), "today", ""), false);
-  assert.equal(inboxMatches(item("archived", { status: "archived" }), "archived", "PREVIEW"), true);
-  assert.equal(inboxMatches(item("other"), "all", "not present"), false);
+test("search filters content without bypassing selected reading status", () => {
+  assert.equal(inboxMatches(item("one", { text: "AI books", readAt: now }), "unread", "books"), false);
+  assert.equal(inboxMatches(item("one", { text: "AI books", readAt: now }), "read", "BOOKS"), true);
+  assert.equal(inboxMatches(item("one", { feedTitle: "Tech Journal" }), "all", "journal"), true);
 });
 
-test("RSS articles map to stable inbox IDs without changing reader state", () => {
+test("RSS content maps to a stable source ID without mutating the reader", () => {
   const articles = [{
     id: "feed:xyz:123", feedId: "feed:xyz", title: "Headline", summary: "excerpt",
     publishedAt: "2026-10-01T10:00:00.000Z", url: "https://example.org/story",
-    author: null, content: null, direction: "ltr" as const, language: "en" as const,
+    author: "Writer", content: null, direction: "ltr" as const, language: "en" as const,
     isRead: false, feed: { title: "Example", icon: null },
   }];
-  const result = rssInboxItems(articles);
-  assert.equal(result[0].id, "rss:feed:xyz:123");
-  assert.equal(result[0].source, "rss");
-  assert.equal(result[0].url, "https://example.org/story");
+  const mapped = rssInboxItems(articles);
+  assert.equal(mapped[0].id, "rss:feed:xyz:123");
+  assert.equal(mapped[0].feedTitle, "Example");
+  assert.equal(mapped[0].readAt, null);
   assert.equal(articles[0].isRead, false);
 });
 
-test("saving and rescanning a source does not reset triage status", async () => {
-  await upsertInboxItems([item("rss:test:unique")]);
-  await changeInboxStatus("rss:test:unique", "saved");
-  await upsertInboxItems([item("rss:test:unique", { title: "Updated title" })]);
-  const saved = await listInbox("saved", "", 1);
-  const found = saved.items.find((entry) => entry.id === "rss:test:unique");
-  assert.equal(found?.status, "saved");
-  assert.equal(found.title, "Updated title");
+test("source refresh preserves saved and read states", async () => {
+  await upsertInboxItems([item("rss:unchanged")]);
+  await changeInboxStatus("rss:unchanged", "saved");
+  await setInboxRead("rss:unchanged", true);
+  await upsertInboxItems([item("rss:unchanged", { title: "Updated title", receivedAt: now + 10000 })]);
+  const actual = await getInboxItem("rss:unchanged");
+  assert.equal(actual?.status, "saved");
+  assert.ok(actual?.readAt);
+  assert.equal(actual.title, "Updated title");
+  assert.equal(actual.receivedAt, now);
 });
 
-test("items remain after separate IndexedDB connections and pagination works", async () => {
-  await upsertInboxItems(Array.from({ length: 62 }, (_, i) => item("rss:pages:" + i, { receivedAt: 1720000000000 + i })));
+test("unread state and archive survive separate DB transactions", async () => {
+  await upsertInboxItems([item("rss:read")]);
+  await setInboxRead("rss:read", true);
+  assert.equal((await listInbox("read", "read")).items.some((entry) => entry.id === "rss:read"), true);
+  await setInboxRead("rss:read", false);
+  assert.equal((await getInboxItem("rss:read"))?.readAt, null);
+  await changeInboxStatus("rss:read", "archived");
+  assert.equal((await listInbox("unread", "read")).items.length, 0);
+  assert.equal((await listInbox("archived", "read")).items.length, 1);
+});
+
+test("user-selected share can be deleted, RSS pagination remains deterministic", async () => {
+  await upsertInboxItems([item("share:explicit", { source: "shared" })]);
+  await deleteInboxItem("share:explicit");
+  assert.equal(await getInboxItem("share:explicit"), null);
+  await upsertInboxItems(Array.from({ length: 62 }, (_, i) => item("rss:pages:" + i, { receivedAt: now + i })));
   const first = await listInbox("all", "pages", 1);
   const second = await listInbox("all", "pages", 2);
   assert.equal(first.items.length, 50);

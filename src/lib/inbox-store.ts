@@ -1,34 +1,53 @@
 import type { Article } from "./reader-types";
 import type { InboxItem, InboxStatus, InboxView } from "./inbox-types";
-import { capturedNotifications, isNative, setCapturedStatus } from "./native-notifications";
 
 const DB = "al-rawi-inbox";
 const STORE = "items";
 const PAGE_SIZE = 50;
 
+function notify() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("al-rawi:inbox-changed"));
+}
+
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 1);
-    req.onupgradeneeded = () => {
-      const store = req.result.createObjectStore(STORE, { keyPath: "id" });
-      store.createIndex("receivedAt", "receivedAt");
-      store.createIndex("status", "status");
+    const request = indexedDB.open(DB, 2);
+    request.onupgradeneeded = (event) => {
+      const database = request.result;
+      if (event.oldVersion < 1) {
+        const store = database.createObjectStore(STORE, { keyPath: "id" });
+        store.createIndex("receivedAt", "receivedAt");
+        store.createIndex("status", "status");
+      }
+      // Erase legacy notification-derived records if any were ever copied into IndexedDB.
+      if (event.oldVersion < 2) {
+        const store = request.transaction!.objectStore(STORE);
+        store.openCursor().onsuccess = (result) => {
+          const cursor = (result.target as IDBRequest<IDBCursorWithValue | null>).result;
+          if (!cursor) return;
+          const item = cursor.value as { source?: string; id?: string };
+          if (item.source === "notification" || item.id?.startsWith("notification:")) cursor.delete();
+          cursor.continue();
+        };
+      }
     };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error ?? Error("IndexedDB unavailable"));
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? Error("IndexedDB unavailable"));
+    request.onblocked = () => reject(Error("Close other Al-Rawi tabs and try again"));
   });
 }
 
-export function inboxMatches(item: InboxItem, view: InboxView, query: string, now = Date.now()): boolean {
-  if (query.trim()) return (item.title + " " + item.text + " " + (item.packageName ?? "")).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase());
-  if (view === "missed") return item.status === "new" && item.receivedAt < now - 48 * 60 * 60 * 1000;
+export function inboxMatches(item: InboxItem, view: InboxView, query: string): boolean {
+  const search = query.trim().toLocaleLowerCase();
+  if (search && !(item.title + " " + item.text + " " + (item.feedTitle ?? "")).toLocaleLowerCase().includes(search)) return false;
+  if (view === "unread") return !item.readAt && item.status !== "archived";
+  if (view === "read") return !!item.readAt && item.status !== "archived";
   if (view === "saved") return item.status === "saved";
+  if (view === "done") return item.status === "done";
   if (view === "archived") return item.status === "archived";
-  if (view === "today") return item.status !== "archived";
-  return true;
+  return item.status !== "archived";
 }
 
-/** Upsert source content while preserving any status the user already selected. */
 export async function upsertInboxItems(items: InboxItem[]): Promise<void> {
   if (!items.length) return;
   const db = await openDb();
@@ -40,24 +59,28 @@ export async function upsertInboxItems(items: InboxItem[]): Promise<void> {
       tx.onerror = () => reject(tx.error ?? Error("Could not save inbox"));
       tx.onabort = () => reject(tx.error ?? Error("Inbox write aborted"));
       for (const item of items) {
-        const get = store.get(item.id);
-        get.onsuccess = () => {
-          const old = get.result as InboxItem | undefined;
-          store.put(old ? { ...item, receivedAt: old.receivedAt, status: old.status } : item);
+        const req = store.get(item.id);
+        req.onsuccess = () => {
+          const previous = req.result as InboxItem | undefined;
+          // Preserve user state and original timestamp across each sync.
+          store.put(previous
+            ? { ...item, receivedAt: previous.receivedAt, status: previous.status, readAt: previous.readAt ?? null }
+            : { ...item, readAt: item.readAt ?? null });
         };
       }
     });
   } finally { db.close(); }
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("al-rawi:inbox-changed"));
+  notify();
 }
 
-async function browserItems(): Promise<InboxItem[]> {
+async function storedItems(): Promise<InboxItem[]> {
   const db = await openDb();
   try {
     return await new Promise<InboxItem[]>((resolve, reject) => {
-      const request = db.transaction(STORE).objectStore(STORE).getAll();
-      request.onsuccess = () => resolve(request.result as InboxItem[]);
-      request.onerror = () => reject(request.error);
+      const req = db.transaction(STORE).objectStore(STORE).getAll();
+      req.onsuccess = () => resolve((req.result as InboxItem[]).filter((item) =>
+        item.source !== ("notification" as string) && !item.id.startsWith("notification:")));
+      req.onerror = () => reject(req.error);
     });
   } finally { db.close(); }
 }
@@ -67,48 +90,66 @@ export function rssInboxItems(articles: Article[]): InboxItem[] {
     id: "rss:" + article.id,
     source: "rss",
     title: article.title,
-    text: article.summary || article.feed.title,
+    text: article.summary || "",
     url: article.url || undefined,
     receivedAt: article.publishedAt ? Date.parse(article.publishedAt) || Date.now() : Date.now(),
     status: "new",
+    readAt: article.isRead ? Date.now() : null,
+    author: article.author || undefined,
+    feedTitle: article.feed.title,
   }));
+}
+
+export async function getInboxItem(id: string): Promise<InboxItem | null> {
+  const db = await openDb();
+  try {
+    return await new Promise((resolve, reject) => {
+      const req = db.transaction(STORE).objectStore(STORE).get(id);
+      req.onsuccess = () => resolve((req.result as InboxItem | undefined) ?? null);
+      req.onerror = () => reject(req.error);
+    });
+  } finally { db.close(); }
 }
 
 export async function listInbox(view: InboxView, query: string, page = 1): Promise<{ items: InboxItem[]; hasMore: boolean }> {
   const cutoff = Math.max(1, page) * PAGE_SIZE;
-  // Native SQLite paginates and filters BEFORE shipping results across the bridge.
-  const native: InboxItem[] = [];
-  if (isNative()) {
-    for (let offset = 0; offset <= cutoff; offset += 200) {
-      const batch = await capturedNotifications(query, view, Math.min(200, cutoff + 1 - offset), offset);
-      native.push(...batch);
-      if (batch.length < Math.min(200, cutoff + 1 - offset)) break;
-    }
-  }
-  const web = (await browserItems()).filter((item) => inboxMatches(item, view, query));
-  const items = [...native, ...web].sort((a, b) => b.receivedAt - a.receivedAt || a.id.localeCompare(b.id));
-  return { items: items.slice(0, cutoff), hasMore: items.length > cutoff };
+  const all = (await storedItems()).filter((item) => inboxMatches(item, view, query))
+    .sort((a, b) => b.receivedAt - a.receivedAt || a.id.localeCompare(b.id));
+  return { items: all.slice(0, cutoff), hasMore: all.length > cutoff };
 }
 
-export async function changeInboxStatus(id: string, status: InboxStatus): Promise<void> {
-  if (id.startsWith("notification:") && isNative()) {
-    const changed = await setCapturedStatus(id, status);
-    if (!changed) throw Error("Notification no longer found");
-  } else {
-    const db = await openDb();
-    try {
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction(STORE, "readwrite");
-        const store = tx.objectStore(STORE);
-        const req = store.get(id);
-        req.onsuccess = () => {
-          const item = req.result as InboxItem | undefined;
-          if (item) store.put({ ...item, status });
-        };
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
-    } finally { db.close(); }
-  }
-  if (typeof window !== "undefined") window.dispatchEvent(new Event("al-rawi:inbox-changed"));
+async function patchInbox(id: string, patch: Partial<InboxItem>): Promise<void> {
+  const db = await openDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      const store = tx.objectStore(STORE);
+      const req = store.get(id);
+      req.onsuccess = () => {
+        const item = req.result as InboxItem | undefined;
+        if (item) store.put({ ...item, ...patch });
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? Error("Could not update inbox"));
+      tx.onabort = () => reject(tx.error ?? Error("Inbox update aborted"));
+    });
+  } finally { db.close(); }
+  notify();
+}
+
+export const changeInboxStatus = (id: string, status: InboxStatus) => patchInbox(id, { status });
+export const setInboxRead = (id: string, isRead: boolean) =>
+  patchInbox(id, { readAt: isRead ? Date.now() : null });
+
+export async function deleteInboxItem(id: string): Promise<void> {
+  const db = await openDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } finally { db.close(); }
+  notify();
 }

@@ -76,28 +76,24 @@ offline cache.
 - Category: Web
 - Source of truth: [`docs/portfolio.json`](docs/portfolio.json)
 
-## Revival feature branch: Android notification inbox
+## Privacy-first Content Hub (Android and Web)
 
-This implementation adds an Inbox for Android notifications and durable RSS,
-Gmail, and YouTube source items, preserving the paper/ink theme and EN/AR/RTL
-reader. Android notifications are captured by a native Kotlin listener and
-written directly to on-device SQLite, rather than depending on the WebView
-being open. Web-sourced items are kept in local IndexedDB. Google sources
-require real OAuth credentials; no mock integrations are used.
+Al-Rawi organizes **source content**, not other apps' notifications. Follow
+RSS/Atom feeds, GitHub public releases, YouTube subscriptions or a chosen
+Gmail label, or explicitly save a link or note. Items have independent
+Read/Unread and Saved/Done/Archived states. Opening an Inbox card shows an
+in-app view if the source permits it or a link to the original.
 
-Use npm run build:capacitor to build and sync the Android native project;
-npm run build remains the Next.js web/PWA build. Build prerequisites, Google
-setup and device tests (pending before release) are documented at
-[Revival verification](docs/revival-verification.md).
+Android no longer has NotificationListenerService or Notification Access.
+The old sensitive captured-notification database is removed on app upgrade.
+Android instead receives only user-initiated Share -> Al-Rawi text/URL intents;
+Web uses a paste action. Google source connectors are still Android-only and
+require real OAuth; no credentials, mock records or cross-device sync are
+included. Gmail readonly is a restricted scope that is broader than the
+chosen label; see the privacy guide for the precise boundary.
 
-### Revival interface revision
-
-The Paper & Ink UI introduces the product's full capabilities on the landing
-page, a first-class Reading/Inbox navigation, better empty states and
-dedicated settings for Preferences, Sources and Android Notifications.
-RSS continues to work on the web; native-only features are labeled honestly.
-See [UI audit](docs/revival-ui-audit.md) and [design contract](DESIGN.md).
-
+Follow the [Content Hub privacy and device guide](docs/revival-verification.md)
+before installing a new debug APK.
 
 ### Android APK from the terminal (no Android Studio UI)
 
@@ -135,7 +131,7 @@ ALRAWI_GOOGLE_ANDROID_CLIENT_ID=YOUR_ANDROID_CLIENT_ID npm run android:apk
 ~~~
 
 Without that ID, these Google sources report unconfigured; RSS and the native
-notification listener can still be tested. The debug certificate's SHA-1 must
+sharing and the local Inbox can still be tested. The debug certificate's SHA-1 must
 match your Google Cloud Android OAuth client configuration. Uninstalling an
 existing build (e.g. to resolve different signing keys) deletes locally stored
 data, so do not uninstall casually. See the

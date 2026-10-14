@@ -82,23 +82,35 @@ promotion is dismissed. iOS uses manual Safari instructions, while likely
 Android WebViews receive an intent URL with an HTTPS fallback and a selectable
 copy link. The host application may still block external-browser navigation.
 
-## Revival extension — Android capture and unified Inbox
+## Privacy-first Content Hub extension
 
-The legacy reader pane and server API routes are unchanged. New Inbox
-navigation uses the existing paper/ink tokens and EN/AR i18n provider.
-The Android shell statically exports Next.js (without API routes temporarily)
-and retrieves RSS through the existing production backend using native
-CapacitorHttp, retaining the backend's public URL validation.
+The existing Next.js RSS Reader and SSRF-protected article extraction backend
+remain. The new unified Inbox saves entries and triage states to client-side
+IndexedDB. Read state (readAt) and organization (new, saved, done, archived)
+are independent; source refreshes preserve both. IndexedDB v2 removes old
+notification-derived items if any were previously copied there.
 
-Android's NotificationListenerService stores incoming notification metadata
-and text immediately in a SQLite archive. This does not require the React
-WebView to be open. The native Capacitor plugin allows pagination and
-status updates. RSS/Gmail/YouTube items use IndexedDB. The Inbox merges
-the two sources and persists triage decisions separately.
+The Android Native NotificationListenerService is REMOVED. MainActivity
+deletes the historical notifications.db on app upgrade. The new
+SharedContentPlugin receives only user-initiated ACTION_SEND text/URL shares
+from the Android Sharesheet. A small local queue is only acknowledged after
+successful IndexedDB persistence, surviving WebView startup delays.
 
-Google login uses AppAuth with PKCE, separate read-only scopes for Gmail
-and YouTube, and Android Keystore AES-GCM storage. The bridge exposes
-approved Google API responses only, never the OAuth tokens. Android backup
-is disabled. OAuth config and physical-device acceptance are not assumed.
+Actual sources: public RSS/Atom feeds (including GitHub public releases),
+pasted links and notes, Android explicit Sharesheet, and optional Android
+Google OAuth connections to Gmail and YouTube. Google tokens use Android
+Keystore AES-GCM. The Gmail readonly scope is restricted and allows access to
+more than just the selected label, though the importer only fetches that
+label's recent messages. Gmail text bodies are fetched on-demand. YouTube
+video playback uses click-to-load privacy-enhanced embeds.
 
-See [Revival handoff](revival-verification.md).
+No generic listener can safely and permissionlessly capture WhatsApp or
+other apps' notifications. No cross-device sync or guaranteed background
+content polling is implemented. Only sources with actual authorized APIs
+should be marked connected.
+
+The Android Capacitor export temporarily moves Node API routes then
+restores them. Native RSS requests use the existing production backend;
+the browser uses same-origin Next.js API routes.
+
+See docs/revival-verification.md for OAuth, privacy and physical-device checks.

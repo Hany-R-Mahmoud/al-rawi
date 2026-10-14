@@ -98,6 +98,35 @@ export async function importGmail(labelId: string): Promise<InboxItem[]> {
   return results;
 }
 
+
+/**
+ * Gmail bodies are fetched only when the user opens the item.
+ * The Gmail readonly scope can access more than the chosen label: see consent UI/docs.
+ * Decode only text/plain (never render remote email HTML).
+ */
+type GmailPart = { mimeType?: string; body?: { data?: string }; parts?: GmailPart[] };
+function collectPlainText(part: GmailPart | undefined): string | null {
+  if (!part) return null;
+  if (part.mimeType === "text/plain" && part.body?.data) {
+    const encoded = part.body.data.replace(/-/g, "+").replace(/_/g, "/");
+    const bytes = Uint8Array.from(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, "=")), (char) => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes).slice(0, 100_000);
+  }
+  for (const child of part.parts ?? []) {
+    const text = collectPlainText(child);
+    if (text) return text;
+  }
+  return null;
+}
+
+export async function gmailMessageText(id: string): Promise<string> {
+  if (!/^[a-f0-9]+$/i.test(id)) throw Error("Invalid Gmail message ID");
+  const response = await getGoogle("gmail",
+    "https://gmail.googleapis.com/gmail/v1/users/me/messages/" + id + "?format=full"
+  ) as { payload?: GmailPart; snippet?: string };
+  return collectPlainText(response.payload) || response.snippet || "";
+}
+
 type Subscription = { snippet?: { resourceId?: { channelId?: string }; title?: string } };
 type Playlist = { contentDetails?: { relatedPlaylists?: { uploads?: string } } };
 type Video = {
