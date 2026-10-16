@@ -30,3 +30,10 @@
 
 ## User expectations
 New work in a feature branch / PR, stop before merge/deploy; no GitHub Actions. Provide evidence, not only configuration claims.
+
+## Codex follow-up — 2026-10-16
+- Google Cloud Web client remains intact, but its original Web Client Secret is no longer retrievable in Google Console. Codex did **not** add a replacement secret; `.env.local` was left absent; the local checkout on `main` was clean.
+- Neon Auth Google provider was independently rechecked and is still **shared**, not custom. No sign-in test has been run.
+- **Do not create a new OAuth client.** With explicit user approval, use Google Cloud **Add secret** on the existing Web client and enter the new secret directly into the Neon Auth custom Google provider using a secure UI. A local `.env.local` copy is **not needed** by Neon Managed Auth.
+- OAuth app remains External/Testing with no test users reported by Codex; the intended test Google account must be added before acceptance testing.
+- See [the updated Google Cloud → integration handoff](GOOGLE_CLOUD_TO_INTEGRATION_HANDOFF.md). No secrets should be committed, printed or pasted into chat.
