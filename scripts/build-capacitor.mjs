@@ -1,17 +1,28 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, renameSync, rmSync } from "node:fs";
+import { existsSync, renameSync, rmSync, mkdtempSync } from "node:fs";
 import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { mkdtempSync } from "node:fs";
 
 const isWindows = process.platform === "win32";
 const npx = isWindows ? "npx.cmd" : "npx";
-const api = resolve("src/app/api");
-const stash = mkdtempSync(resolve(tmpdir(), "al-rawi-api-"));
-const held = resolve(stash, "api");
-const hadApi = existsSync(api);
-if (hadApi) renameSync(api, held);
+const stash = mkdtempSync(resolve(tmpdir(), "al-rawi-native-"));
+
+// Native APK is a static export. Server-only auth endpoints, OAuth callback
+// pages and Next.js proxy must not be included in its export/build graph.
+const excluded = [
+  ["src/app/api", "api"],
+  ["src/app/auth", "auth"],
+  ["src/proxy.ts", "proxy.ts"],
+];
+const moved = [];
 try {
+  for (const [src, name] of excluded) {
+    const source = resolve(src);
+    if (!existsSync(source)) continue;
+    const target = resolve(stash, name);
+    renameSync(source, target);
+    moved.push({ source, target });
+  }
   execFileSync(npx, ["next", "build"], {
     stdio: "inherit",
     shell: isWindows,
@@ -19,6 +30,8 @@ try {
   });
   execFileSync(npx, ["cap", "sync", "android"], { stdio: "inherit", shell: isWindows });
 } finally {
-  if (hadApi) renameSync(held, api);
+  for (const { source, target } of moved.reverse()) {
+    if (existsSync(target)) renameSync(target, source);
+  }
   rmSync(stash, { recursive: true, force: true });
 }
