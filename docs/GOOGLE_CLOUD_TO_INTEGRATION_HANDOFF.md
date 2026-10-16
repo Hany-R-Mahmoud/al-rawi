@@ -44,22 +44,27 @@ Gmail `gmail.readonly` is restricted and can read the mailbox beyond the app-sel
 - Vercel project `al-rawi`: the checked environment-variable listing contained **no app variables**. Configuration is still pending.
 - GitHub feature branch `feat/neon-auth-foundation`, PR #5. No login UI, protected per-user data endpoints or cloud sync have been implemented yet.
 
-## Immediate Codex/local-machine task: save the secret
+## Update from latest Codex handover — missing Web Client Secret
 
-**ChatGPT's container does not have access to the user's macOS checkout or clipboard.** The handover contains no secret value. This task must run inside the existing Codex local session or locally on the Mac.
+**Current verified status reported by Codex:** The existing Google Web OAuth Client Secret was not saved and cannot be displayed again; no new secret was added, and `.env.local` is absent. Codex checked that the local `main` branch was clean and `.env.local` is already ignored. ChatGPT additionally rechecked Neon: Google is still a **shared** OAuth provider, NOT a custom provider. **Neither Google Sign In nor a cross-device sync has been tested.**
 
-1. In the local checkout `/Users/hanyramadan/new era/ops/apexyard-portfolio/workspace/al-rawi`, open/create **project-root `.env.local` using an editor/file-write API**. Do not rely on shell heredocs or complex shell redirection rejected by the PreToolUse hook.
-2. **Preserve any existing lines** if the file already exists. On a new line add `GOOGLE_WEB_CLIENT_SECRET=` followed by the actual copied **Web** client secret from the authorized private source. Do not include the value in any message, screenshot or tool output. Do not use the Android client ID or Web client ID as a substitute for a secret.
-3. `.gitignore` already contains `.env*` and `.env.local`. Confirm the file remains ignored using `git check-ignore -v -- .env.local`; check `git status --short --untracked-files=all` to ensure no secret file is staged or tracked. Never run `git add -f .env.local`.
-4. Report only `local secret file created/updated: yes/no`, `gitignored: yes/no`, and `untracked/staged: yes/no` — **not the secret**.
-5. **The local `GOOGLE_WEB_CLIENT_SECRET` variable alone does not configure Google login via Managed Neon Auth.** Neon itself must receive the Web client ID and secret as its **custom Google OAuth provider** configuration through a secure authenticated admin channel. Avoid moving the secret via chat, GitHub or build logs.
+**Important correction:** Because this project uses **Neon Managed Better Auth**, the Google **Web Client Secret is required by the Neon OAuth provider**, not by the Next.js app or Vercel. There is **no functional requirement to write `GOOGLE_WEB_CLIENT_SECRET` into the project's local `.env.local`** for this managed approach. Avoid creating extra copies of this high-value secret. The earlier request to save it locally is optional only if the user explicitly wants a private backup.
 
-The rest of this task can proceed without the secret being copied into the ChatGPT conversation.
+### Next step — needs user authorization before creating new credential
+
+1. After explicit user authorization, open Google Auth Platform → Clients → **existing Web OAuth Client** (`419056937607-pcvpiqrqvs9levm5g28hgvsgkbh3gkmn.apps.googleusercontent.com`); use **Add secret** on that same client. **Do not create another client or project.**
+2. Transfer the newly shown Web secret to **Neon Console → project al-rawi → branch main → Auth → Google OAuth (custom provider)** using a secure, authenticated UI workflow. Reuse existing **Web Client ID**; never use the Android client ID or ask the user to paste the secret into chat/issue/PR/logs. Avoid clipboard dumps/screenshots showing the secret.
+3. Verify Neon OAuth provider reads `custom` and the callback is still `https://ep-morning-wind-ba530r1h.neonauth.c-8.eu-central-1.aws.neon.tech/neondb/auth/callback/google`.
+4. In Google Auth Platform → Audience, add the user's intended Google test account(s) while the app is **External / Testing**. Do not assume support email equals test user email; confirm the actual login account.
+5. Verify `git status` stays clean and no secrets were committed. If the user **explicitly requires** a local secret backup, write the actual new secret only to the ignored root `.env.local` using a direct editor operation, and verify `git check-ignore -v -- .env.local`. This backup **alone** does not configure Neon.
+6. Stop and report credential-created yes/no, Neon-custom-provider yes/no, test-user-added yes/no, and blockers. **Never return the secret.**
+
+Official Google documentation confirms an unrecoverable Web Client Secret can be replaced by **Add secret** on its existing OAuth client: https://developers.google.com/health/codelabs/make-your-first-api-call-using-oauth2-playground.
 
 ## Next Neon integration steps
 
-1. In Google Cloud, add the intended test account(s), e.g. `audiobookstrial2@gmail.com` if that is the actual test login, to the External/Testing OAuth application's test users. Confirm the consent-page test scopes and signing certificate SHA-1 on a real device.
-2. Configure **Neon Auth Google provider** as **custom** with the Google **Web** client ID and secret, using a secret-safe Neon Console or authenticated CLI workflow. Verify the resulting provider is no longer `shared`; do not expose the secret in this document.
+1. Follow the **missing secret** recovery workflow above; add the actual intended test Google account(s), and confirm the consent-page test scopes and Android SHA-1 on a real device.
+2. Configure **Neon Auth Google provider** as **custom** with the existing Google **Web** Client ID and newly generated Web secret, after approval, via secure Neon Console or authenticated workflow. Verify it is no longer `shared`; do not expose any secret.
 3. Set **server-only** Vercel environment variables for the correct project: `NEON_AUTH_BASE_URL`, a new strong `NEON_AUTH_COOKIE_SECRET`, and pooled `DATABASE_URL` when user-data routes need it. Separate production from preview databases/credentials. Do not use `NEXT_PUBLIC_` for these.
 4. Implement Next.js web session/login/logout via `@neondatabase/auth` (Managed wrapper) and protected server-side user-data routes. Keep RSS/reading as guest/local-first unless the user chooses to sign in.
 5. Scope all SQL CRUD operations by authenticated session user ID. Existing `rawi` tables **do not implement per-user authorization on their own**. Never trust a client-supplied `user_id`.
