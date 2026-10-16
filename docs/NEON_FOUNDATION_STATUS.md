@@ -37,3 +37,13 @@ New work in a feature branch / PR, stop before merge/deploy; no GitHub Actions. 
 - **Do not create a new OAuth client.** With explicit user approval, use Google Cloud **Add secret** on the existing Web client and enter the new secret directly into the Neon Auth custom Google provider using a secure UI. A local `.env.local` copy is **not needed** by Neon Managed Auth.
 - OAuth app remains External/Testing with no test users reported by Codex; the intended test Google account must be added before acceptance testing.
 - See [the updated Google Cloud → integration handoff](GOOGLE_CLOUD_TO_INTEGRATION_HANDOFF.md). No secrets should be committed, printed or pasted into chat.
+
+## Integration progress — 2026-10-16, 14:45 Cairo (after Codex handoff)
+
+**Externally verified:** Neon Auth Google provider is **standard** with the correct Web client ID and redacted secret; production Vercel environment has `NEON_AUTH_BASE_URL`, encrypted `NEON_AUTH_COOKIE_SECRET`, encrypted pooled `DATABASE_URL` (separate restricted `rawi_app` role). Checked this role can SELECT from `rawi.user_feeds`. The Google OAuth app still needs a confirmed test user.
+
+**Code committed only on `feat/neon-auth-foundation`:** Web sign-in, auth callback+proxy, Neon same-origin auth API, account Settings, manual RSS-only backup/restore API scoped by authenticated user ID, and Android static-export build-script exclusions. The existing guest-first reader and native Gmail/YouTube code remain accessible, but regression testing is still pending.
+
+**Blocking tasks:** `package.json` now includes Neon SDK dependencies but **`package-lock.json` has NOT been regenerated** because remote large-file writes were blocked. `npm ci` will fail until a local `npm install` updates the lock. No dependencies, build, tests, Google login, or physical Android tests could run in this sandbox. No merge or Vercel deployment has been executed. Production env values are present but inert until code is deployed with approval. Preview env values were intentionally not provisioned.
+
+**Next:** Follow [NEON_ACCOUNT_IMPLEMENTATION_HANDOFF.md](NEON_ACCOUNT_IMPLEMENTATION_HANDOFF.md) for lockfile regeneration on the local Mac, type/lint/build tests, Google test user, OAuth full login checks, and Android verification. The original static informational paragraphs earlier in this document are historical as of the initial foundation milestone and should not be treated as the latest status.
