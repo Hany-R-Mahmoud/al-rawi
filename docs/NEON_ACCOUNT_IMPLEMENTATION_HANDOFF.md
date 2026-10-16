@@ -64,3 +64,9 @@ If a test needs backend access, add the required `NEON_AUTH_BASE_URL`, `NEON_AUT
 - Cloud backup is optional, manual, and for public RSS metadata/read state only (limit 200 recent RSS items per manual upload; server supports max 500). Content-source access is separate Google authorization.
 - Android APK's OAuth clients grant opted-in Gmail/YouTube API access, *not* an Al-Rawi account session. Native Al-Rawi login and cross-device sync for Android need separate secure design/implementation; do not try Google Web OAuth inside an embedded WebView.
 - No continuous server polling, push notifications, automated background sync, or account data migration.
+
+## Validation update (same day — completed in ephemeral Vercel Sandbox)
+
+The earlier `npm install`/lint/build testing limitation was resolved **in a temporary Vercel Sandbox with a public repo clone and no production secrets**. The feature branch passed: `npm install`, `npm ci` with a locally regenerated lockfile, `npm run lint`, `npx tsc --noEmit`, **24/24** focused tests, `npm run build`, `npm run build:capacitor`, and anonymous HTTP checks of /reader (200), /auth/sign-in (200), backup GET (401), same-origin unauthenticated backup POST (401) and cross-site POST (403). An Origin-validation bug was identified and fixed in `src/lib/server-origin.ts` with 5 new tests.
+
+**Still blocked:** the regenerated `package-lock.json` exists only in that sandbox, **not** in the GitHub branch because large connector writes and anonymous git push were blocked. Codex must run `npm install` locally, regenerate and commit `package-lock.json`, then revalidate with `npm ci`. npm still warns about transitive Better Auth peer-version conflicts; audit them before release. No authenticated Google login, database-per-user persistence, full Gradle APK, or physical-device test was performed. See [full validation evidence](NEON_SANDBOX_VALIDATION_2026-10-16.md). No merge or deployment.
