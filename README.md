@@ -157,6 +157,8 @@ The `feat/neon-auth-foundation` branch adds Google login for the web via Neon Ma
 
 There is **no automated cross-device sync** and **no Android user-account login** yet. Existing Android source authorization (Gmail/YouTube) remains separate. See [integration status and required tests](docs/NEON_ACCOUNT_IMPLEMENTATION_HANDOFF.md).
 
-**Important:** `package.json` was updated but `package-lock.json` is still outdated on this feature branch. Before installing via `npm ci`, someone working in the local checkout must run `npm install` to regenerate and commit the lockfile, then run lint, TypeScript, tests, web build, and Android static-export build. Do not deploy or merge until those checks pass and Google OAuth is tested using a configured Google test user.
+Dependency repairs and current verification limits are recorded in the
+[integration repair report](docs/NEON_REPAIR_REPORT_2026-10-16.md). Google OAuth
+and two-account isolation still need live verification before merge or deployment.
 
 The server requires `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, and `DATABASE_URL`. Production variables are provisioned in Vercel, not in GitHub. Local values must be kept in the gitignored `.env.local`; the Google Web Client Secret lives in Neon Auth, not in a browser-visible variable. Do not copy production credentials into untrusted preview deployments.

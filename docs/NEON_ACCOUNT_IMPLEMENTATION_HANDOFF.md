@@ -2,6 +2,11 @@
 
 **2026-10-16 | Current branch:** `feat/neon-auth-foundation` | [PR #5](https://github.com/Hany-R-Mahmoud/al-rawi/pull/5)
 
+**Latest local repair status:** See [the repair report](NEON_REPAIR_REPORT_2026-10-16.md).
+The lockfile and dependency observations below describe the earlier handoff;
+the repair report supersedes them. Live Google login and two-account isolation
+remain unverified. Physical Android testing is deferred by the user.
+
 ## Verified live infrastructure
 
 - Neon: `al-rawi` project `lucky-haze-33211470`, branch `main` / `br-dark-queen-baaycjls`.
@@ -23,7 +28,7 @@
 - `scripts/build-capacitor.mjs`: temporarily excludes server-only routes and proxy when statically exporting the Android APK, restoring source files in `finally`. Android account login is **not** implemented. Existing native Gmail/YouTube connectors are unchanged.
 - `package.json` now pins `@neondatabase/auth@0.5.0-beta` and `@neondatabase/serverless@0.10.4`.
 
-## CRITICAL blocker: dependency lock not regenerated
+## Historical blocker at handoff: dependency lock not regenerated
 
 **`package-lock.json` on this branch is still outdated. DO NOT run `npm ci`, merge this PR, or deploy until the lock is regenerated and builds are validated.** Attempts to write the 533 KB lock through the remote GitHub file connector were blocked by its safety checks. No runtime dependencies are available in ChatGPT's container, and network DNS for npm is unavailable.
 

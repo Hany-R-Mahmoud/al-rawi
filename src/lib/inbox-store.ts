@@ -149,6 +149,12 @@ export async function listInbox(view: InboxView, query: string, page = 1): Promi
   return { items: all.slice(0, cutoff), hasMore: all.length > cutoff };
 }
 
+export async function recentRssBackupItems(): Promise<InboxItem[]> {
+  return (await storedItems()).filter((entry) => entry.source === "rss")
+    .sort((a, b) => b.receivedAt - a.receivedAt || a.id.localeCompare(b.id))
+    .slice(0, 200);
+}
+
 async function patchInbox(id: string, patch: Partial<InboxItem>): Promise<void> {
   const db = await openDb();
   try {

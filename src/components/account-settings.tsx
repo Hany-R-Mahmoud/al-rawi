@@ -66,7 +66,7 @@ function WebAccountSettings({ feeds, onImportFeeds }: Props) {
         <Button type="button" variant="outline" size="sm" className="min-h-10 gap-2" disabled={busy} onClick={() => void run(async () => {
           const result = await authClient.signOut();
           if (result.error) throw new Error("Sign out failed");
-          window.location.assign("/reader");
+          window.location.assign(new URL("/reader", window.location.origin).href);
         }, "")}><LogOut className="h-4 w-4" />{t.signOut}</Button>
       </div>
       <div className="space-y-3 border-t border-border pt-5">

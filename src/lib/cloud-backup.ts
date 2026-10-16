@@ -1,4 +1,4 @@
-import { listInbox, applyCloudRssItems } from "./inbox-store";
+import { recentRssBackupItems, applyCloudRssItems } from "./inbox-store";
 import type { InboxItem } from "./inbox-types";
 import type { StoredFeed } from "./reader-types";
 
@@ -14,10 +14,7 @@ async function cloudRequest(method: "GET" | "POST", body?: unknown): Promise<unk
 }
 
 export async function saveRssBackup(feeds: StoredFeed[]): Promise<void> {
-  const [active, archived] = await Promise.all([listInbox("all", "", 5), listInbox("archived", "", 5)]);
-  const items = Array.from(new Map([...active.items, ...archived.items]
-    .filter((item) => item.source === "rss").map((item) => [item.id, item])).values())
-    .sort((a, b) => b.receivedAt - a.receivedAt).slice(0, 200)
+  const items = (await recentRssBackupItems())
     .map((item) => ({
       id: item.id, source: "rss", title: item.title.slice(0, 280),
       text: item.text.slice(0, 280), url: item.url ?? null,

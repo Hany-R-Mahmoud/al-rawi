@@ -74,8 +74,8 @@
     }
   ],
   "progress": {
-    "en": "Privacy-first Content Hub and unmerged optional Neon web account/RSS backup implementation. Lockfile, web OAuth tests and Android device validation pending.",
-    "ar": "مركز محتوى يراعي الخصوصية، مع إضافة حساب ويب اختياري ونسخ RSS احتياطي على فرع لم يُدمج؛ تحديث lockfile واختبارات OAuth وأندرويد ما زالت مطلوبة."
+    "en": "Optional Neon web account branch: dependency and RSS backup repairs verified locally; live OAuth and two-account cloud isolation unverified. Android device testing deferred.",
+    "ar": "فرع حساب Neon: إصلاحات محلية للتبعيات ونسخ RSS؛ OAuth وعزل حسابين غير متحقق منهما، واختبار جهاز أندرويد مؤجل."
   },
   "issues": [
     {
@@ -91,8 +91,8 @@
       "ar": "اختبارات مشاركة أندرويد وOAuth بحساب حقيقي معلقة."
     },
     {
-      "en": "Neon account branch: package-lock.json is not yet regenerated for added dependencies; build, login and device tests remain pending.",
-      "ar": "فرع حساب Neon: ملف package-lock.json لم يتم تحديثه بعد للإضافات الجديدة، واختبارات البناء وتسجيل الدخول والجهاز معلقة."
+      "en": "Neon branch NOT READY: live OAuth/isolation unverified; development-only braces audit chain remains affected. See NEON_REPAIR_REPORT_2026-10-16.md.",
+      "ar": "فرع Neon غير جاهز: OAuth وعزل الحسابات غير متحقق منهما، وسلسلة braces في أدوات التطوير ما زالت متأثرة. راجع تقرير الإصلاح."
     }
   ],
   "suggestions": [
