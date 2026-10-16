@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Capacitor } from "@capacitor/core";
+
 import { CloudDownload, CloudUpload, LogIn, LogOut, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
@@ -32,7 +32,7 @@ const copy = {
 
 export function AccountSettings(props: Props) {
   const { language } = useLanguage();
-  if (Capacitor.isNativePlatform()) {
+  if (process.env.NEXT_PUBLIC_CAPACITOR_BUILD === "1") {
     return <p className="rounded-lg border border-border bg-muted p-4 text-sm leading-7 text-ink-subtle">{copy[language].native}</p>;
   }
   return <WebAccountSettings {...props} />;
