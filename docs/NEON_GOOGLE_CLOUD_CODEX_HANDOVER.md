@@ -1,6 +1,6 @@
 # Al-Rawi — Codex Google Cloud Console Handover (2026-10-16)
 
-## Goal
+> **STATUS UPDATE — 2026-10-16:** Codex has completed Google Cloud project setup and returned Web/Android OAuth IDs. **DO NOT repeat the project/client creation steps below.** This file is the original instruction set for Codex, retained for history. The actionable next-agent handoff is [GOOGLE_CLOUD_TO_INTEGRATION_HANDOFF.md](GOOGLE_CLOUD_TO_INTEGRATION_HANDOFF.md). The immediate unresolved step is saving the **existing** Web client secret on the local Mac without disclosing it, followed by configuring a **custom** Google provider in Neon and adding Google OAuth test users.\n\n## Goal
 Configure **Google Cloud Console only** so Al-Rawi can offer Google Sign In for web accounts via **Neon Managed Better Auth**, while preserving the existing **separate Android OAuth** permissions for Gmail and YouTube. Do not migrate databases, redesign UI, or deploy code in this task.
 
 ## Confirmed resources
