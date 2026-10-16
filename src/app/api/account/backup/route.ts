@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { auth } from "@/lib/auth/server";
+import { isTrustedMutationOrigin } from "@/lib/server-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -101,7 +102,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (request.headers.get("origin") !== new URL(request.url).origin) {
+  if (!isTrustedMutationOrigin(request)) {
     return json({ error: "Origin not allowed" }, 403);
   }
   if (!request.headers.get("content-type")?.startsWith("application/json")) {
