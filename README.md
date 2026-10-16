@@ -159,6 +159,8 @@ There is **no automated cross-device sync** and **no Android user-account login*
 
 Dependency repairs and current verification limits are recorded in the
 [integration repair report](docs/NEON_REPAIR_REPORT_2026-10-16.md). Google OAuth
-and two-account isolation still need live verification before merge or deployment.
+and two-account isolation passed on the dedicated Neon test branch. The
+authenticated forged `user_id` backup POST check remains pending before merge
+or deployment.
 
 The server requires `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, and `DATABASE_URL`. Production variables are provisioned in Vercel, not in GitHub. Local values must be kept in the gitignored `.env.local`; the Google Web Client Secret lives in Neon Auth, not in a browser-visible variable. Do not copy production credentials into untrusted preview deployments.

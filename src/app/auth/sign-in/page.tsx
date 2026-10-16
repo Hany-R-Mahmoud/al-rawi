@@ -23,7 +23,7 @@ export default function SignInPage() {
     try {
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL: window.location.origin + "/auth/callback",
+        callbackURL: "/auth/callback",
       });
       if (result.error) setError(result.error.message ?? (ar ? "تعذر تسجيل الدخول." : "Sign in could not start."));
     } catch {

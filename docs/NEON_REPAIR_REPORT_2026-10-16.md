@@ -1,7 +1,9 @@
 # Neon integration repair — 2026-10-16
 
-Status: **NOT READY**. Google OAuth and two-account cloud isolation remain
-unverified. Android device testing is deferred by the user.
+Status: **PENDING FORGED-USER TEST**. The user reports that Google OAuth and
+two-account isolation acceptance passed on the dedicated Neon test branch.
+The authenticated backup POST with a forged `user_id` remains to be verified.
+Android device testing is deferred by the user.
 
 ## Repairs
 
@@ -33,31 +35,32 @@ No warning suppression, legacy-peer-deps, audit exclusions or advisory edits.
 
 ## Verification and limits
 
-- Clean install with npm 11.6.2: `npm ci --strict-peer-deps` passed without
-  peer-conflict warnings. Deprecation warnings from transitive packages remain.
+- `npm ci --strict-peer-deps` passed. npm printed optional peer-resolution and
+  deprecation warnings from transitive packages.
   `npm ls` confirms a valid Better Auth tree with no api-key package installed.
 - Xcode UUID compatibility passed using its real generateUuid method with an
   empty project fixture; no iOS build was performed.
-- Lint and TypeScript passed; focused tests passed 25/25.
-- Web build passed with explicit non-secret Auth placeholders. Without them,
-  it failed because cookies.secret was missing. This does not prove OAuth.
+- Lint and TypeScript passed; unit tests passed 25/25.
+- The default Turbopack web build could not start a subprocess in the restricted
+  environment. The production webpack build passed after retrying with the
+  required local process/network access.
 - Capacitor export/sync passed, with the usual static-export headers warning.
 - Source review confirms backup GET/POST use the server session ID and SQL
-  reads/writes/conflict keys include user_id. This is not a live isolation test.
+  reads/writes/conflict keys include user_id. The authenticated forged-ID test
+  against the dedicated Neon branch is still pending.
 - Local IndexedDB stays browser/device storage; sign-out does not erase it.
   Cloud account isolation is a separate server boundary.
 - No physical-device/configured native Google-source APK claim is made.
-- .env.local contents were not inspected or changed. No merge, deployment,
-  Google audience change or database mutation occurred.
+- `.env.local` was not changed or committed. No merge, deployment, or Google
+  audience change occurred.
 
 ## Remaining acceptance
 
-1. Supply two intended Google test accounts and configure the testing audience;
-   verify consent/callback, session persistence, sign-out, denial and errors.
-2. Verify cloud read/write isolation with both accounts and overlapping IDs
-   in an authorized test environment.
-3. Resolve the braces tooling advisory when a compatible fix exists, or
+1. Verify Account B cannot overwrite Account A through an authenticated backup
+   POST that supplies Account A's forged `user_id`, then restore the disposable
+   Account B RSS test record.
+2. Resolve the braces tooling advisory when a compatible fix exists, or
    explicitly review/accept its exposure.
-4. Android device and configured native source testing remain deferred.
+3. Android device and configured native source testing remain deferred.
 
 <!-- Verification execution group: TOKEN_POLICY_BATCHED_EXECUTION -->

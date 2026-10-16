@@ -4,8 +4,10 @@
 
 **Latest local repair status:** See [the repair report](NEON_REPAIR_REPORT_2026-10-16.md).
 The lockfile and dependency observations below describe the earlier handoff;
-the repair report supersedes them. Live Google login and two-account isolation
-remain unverified. Physical Android testing is deferred by the user.
+the repair report supersedes them. Google OAuth and two-account isolation
+acceptance passed on the dedicated Neon test branch. An authenticated backup
+POST with a forged `user_id` remains to be tested. Physical Android testing is
+deferred by the user.
 
 ## Verified live infrastructure
 

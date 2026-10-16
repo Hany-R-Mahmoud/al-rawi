@@ -28,14 +28,16 @@ content are fetched on demand and kept in memory for the current session.
 | Feed route | `src/app/api/feed/route.ts` | Fetches and parses a public RSS/Atom resource. |
 | Article route | `src/app/api/articles/extract/route.ts` | Fetches public HTML and returns sanitized Readability content. |
 | Browser state | `src/lib/local-reader.ts`, `src/components/language-provider.tsx` | Persists feed subscriptions and language preference locally. |
+| Optional web account | `src/app/auth/sign-in/page.tsx`, `src/app/auth/callback/page.tsx` | Neon Google sign-in for optional, manual RSS backup and restore on `feat/neon-auth-foundation`. |
+| Account backup route | `src/app/api/account/backup/route.ts` | Session-scoped RSS backup; the server takes the user ID from the authenticated session. |
 
 ## Explicit current boundaries
 
-The source does not currently contain authentication, a database, a scheduled
-worker, server-side subscription storage, IndexedDB caching, or a read-later
-queue. Those capabilities appear in the older product brief
-[`064-rss-reader-web.md`](../064-rss-reader-web.md) and should be treated as
-future scope, not current behavior.
+The optional Neon web account exists on `feat/neon-auth-foundation`; guest RSS
+reading stays local-first, and backup runs only when the user requests it.
+Android account login, automatic cross-device sync, and a read-later queue are
+not implemented. The older product brief [`064-rss-reader-web.md`](../064-rss-reader-web.md)
+describes other future capabilities, not current behavior.
 
 ## Unknowns
 
