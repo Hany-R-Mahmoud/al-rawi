@@ -41,8 +41,8 @@
       "ar": "`rss-parser`, `iconv-lite`, `@mozilla/readability`, and `jsdom`"
     },
     {
-      "en": "Only feed subscriptions are persisted locally.",
-      "ar": "Only feed subscriptions are persisted locally."
+      "en": "Feed subscriptions and reading preferences persist in localStorage; Content Hub item read/saved states persist in IndexedDB.",
+      "ar": "اشتراكات RSS وتفضيلات القراءة محفوظة في LocalStorage؛ وحالات الوارد مثل القراءة والحفظ محفوظة في IndexedDB."
     },
     {
       "en": "Article lists and extracted article HTML are memory-only.",
@@ -67,11 +67,15 @@
     {
       "en": "Inbox Read/Unread independent of Saved/Done/Archived with source previews.",
       "ar": "وارد بحالات قراءة منفصلة عن الحفظ والإنهاء والأرشفة ومعاينات مصادر."
+    },
+    {
+      "en": "Unmerged feature branch: Neon Google web login and optional, user-scoped manual RSS backup/restore. The user reports web OAuth and two-account isolation acceptance passed on the test branch; the forged-user_id POST check is pending. No Android account login.",
+      "ar": "فرع غير مدمج: تسجيل دخول Google عبر Neon للويب ونسخ RSS احتياطيًا واستعادته يدويًا لكل مستخدم. أفاد المستخدم بنجاح اختبارات OAuth وعزل حسابين على فرع الاختبار؛ وما زال فحص POST بحقل user_id مزوّر معلقًا. لا يتضمن تسجيل دخول للحساب على أندرويد."
     }
   ],
   "progress": {
-    "en": "Privacy-first Content Hub implementation; real Android share and OAuth acceptance pending.",
-    "ar": "تنفيذ مركز محتوى يراعي الخصوصية؛ اختبار المشاركة وربط Google على أندرويد ما زال مطلوبًا."
+    "en": "Optional Neon web account branch: Google OAuth and two-account isolation acceptance passed on the dedicated Neon test branch. Authenticated forged-user_id backup POST check pending. Android device testing deferred.",
+    "ar": "فرع حساب Neon الاختياري للويب: اجتازت اختبارات Google OAuth وعزل الحسابين على فرع Neon المخصص للاختبار. ما زال اختبار POST موثّق ومزوّر لحقل user_id قيد الانتظار. اختبار جهاز أندرويد مؤجل."
   },
   "issues": [
     {
@@ -83,8 +87,12 @@
       "ar": "No conventional test directory was detected."
     },
     {
-      "en": "Real Android Share Sheet and Google OAuth device tests pending.",
-      "ar": "اختبارات مشاركة أندرويد وOAuth بحساب حقيقي معلقة."
+      "en": "Android Share Sheet and native-source device tests remain deferred; web Google OAuth acceptance passed.",
+      "ar": "ما زالت اختبارات مشاركة أندرويد والمصدر الأصلي على الجهاز مؤجلة؛ وقد اجتاز OAuth للويب اختبارات القبول."
+    },
+    {
+      "en": "Neon branch remains a draft: authenticated forged-user_id POST check pending; development-only braces audit chain remains affected. Android device testing is deferred. See NEON_REPAIR_REPORT_2026-10-16.md.",
+      "ar": "فرع Neon ما زال مسودة: اختبار POST الموثّق لحقل user_id المزوّر قيد الانتظار؛ وما زالت سلسلة تحذير braces الخاصة بأدوات التطوير متأثرة. اختبار جهاز أندرويد مؤجل. راجع تقرير الإصلاح."
     }
   ],
   "suggestions": [
@@ -111,6 +119,6 @@
   },
   "source": {
     "workspace": "workspace/al-rawi",
-    "last_reviewed": "2026-10-14"
+    "last_reviewed": "2026-10-16"
   }
 }

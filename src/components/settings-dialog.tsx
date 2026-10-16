@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/components/language-provider";
-import { Download, Palette, Plug2, Settings2, Upload } from "lucide-react";
+import { Download, Palette, Plug2, Settings2, Upload, UserRound } from "lucide-react";
+import { AccountSettings } from "@/components/account-settings";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
@@ -12,7 +13,7 @@ import { makeFeedId } from "@/lib/local-reader";
 import { SourcesSettings } from "@/components/sources-settings";
 import type { StoredFeed } from "@/lib/reader-types";
 
-export type SettingsSection = "appearance" | "sources";
+export type SettingsSection = "appearance" | "sources" | "account";
 type SettingsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -63,6 +64,7 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
   const tabs = [
     { id: "appearance" as const, icon: Palette, label: t("uiPreferences") },
     { id: "sources" as const, icon: Plug2, label: t("sourcesTitle") },
+    { id: "account" as const, icon: UserRound, label: language === "ar" ? "الحساب" : "Account" },
   ];
 
   return (
@@ -111,6 +113,7 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
           </div>
         )}
         {section === "sources" && <div className="pb-3 pt-2"><SourcesSettings onAddFeed={onAddFeed} /></div>}
+        {section === "account" && <div className="pb-3 pt-2"><AccountSettings feeds={feeds} onImportFeeds={onImportFeeds} /></div>}
       </DialogContent>
     </Dialog>
   );

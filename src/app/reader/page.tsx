@@ -330,6 +330,7 @@ export default function Home() {
         onInbox={() => { setShowInbox(true); setShowMobileNav(false); }}
         onSources={() => openSettings("sources")}
         onSettings={() => openSettings("appearance")}
+        onAccount={() => openSettings("account")}
       />
       <div className="relative flex min-h-0 flex-1">
       {showInbox ? <InboxPane onBack={() => setShowInbox(false)} onManageSources={() => openSettings("sources")} /> : <>

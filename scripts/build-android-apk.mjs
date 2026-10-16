@@ -30,7 +30,7 @@ try {
 
   if (!process.env.ALRAWI_GOOGLE_ANDROID_CLIENT_ID) {
     console.warn(
-      "Google OAuth client ID is not set. RSS and native notification capture " +
+      "Google OAuth client ID is not set. RSS and native sharing " +
       "can run, but Gmail and YouTube connections will remain unconfigured.\n" +
       "For Google sign-in, set ALRAWI_GOOGLE_ANDROID_CLIENT_ID before building.\n"
     );

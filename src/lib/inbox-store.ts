@@ -73,6 +73,37 @@ export async function upsertInboxItems(items: InboxItem[]): Promise<void> {
   notify();
 }
 
+/**
+ * Explicit account restore overrides RSS reading state without replacing
+ * device-local Gmail, YouTube, or user-shared records.
+ */
+export async function applyCloudRssItems(items: InboxItem[]): Promise<void> {
+  if (!items.length) return;
+  const db = await openDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      const store = tx.objectStore(STORE);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? Error("Could not restore inbox"));
+      tx.onabort = () => reject(tx.error ?? Error("Inbox restore aborted"));
+      for (const item of items) {
+        if (item.source !== "rss" || !item.id.startsWith("rss:")) continue;
+        const req = store.get(item.id);
+        req.onsuccess = () => {
+          const previous = req.result as InboxItem | undefined;
+          if (previous && previous.source === "rss") {
+            store.put({ ...previous, status: item.status, readAt: item.readAt ?? null });
+          } else if (!previous) {
+            store.put({ ...item, readAt: item.readAt ?? null });
+          }
+        };
+      }
+    });
+  } finally { db.close(); }
+  notify();
+}
+
 async function storedItems(): Promise<InboxItem[]> {
   const db = await openDb();
   try {
@@ -116,6 +147,12 @@ export async function listInbox(view: InboxView, query: string, page = 1): Promi
   const all = (await storedItems()).filter((item) => inboxMatches(item, view, query))
     .sort((a, b) => b.receivedAt - a.receivedAt || a.id.localeCompare(b.id));
   return { items: all.slice(0, cutoff), hasMore: all.length > cutoff };
+}
+
+export async function recentRssBackupItems(): Promise<InboxItem[]> {
+  return (await storedItems()).filter((entry) => entry.source === "rss")
+    .sort((a, b) => b.receivedAt - a.receivedAt || a.id.localeCompare(b.id))
+    .slice(0, 200);
 }
 
 async function patchInbox(id: string, patch: Partial<InboxItem>): Promise<void> {

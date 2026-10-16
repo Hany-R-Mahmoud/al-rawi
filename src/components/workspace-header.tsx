@@ -1,7 +1,7 @@
 "use client";
 
 import { AppRouteLink } from "@/components/app-route-link";
-import { ArrowUpRight, BookOpenText, Inbox, Plug2, Settings2 } from "lucide-react";
+import { ArrowUpRight, BookOpenText, Inbox, Plug2, Settings2, UserRound } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { useLanguage } from "@/components/language-provider";
 
@@ -11,10 +11,11 @@ type WorkspaceHeaderProps = {
   onInbox: () => void;
   onSources: () => void;
   onSettings: () => void;
+  onAccount: () => void;
 };
 
-export function WorkspaceHeader({ active, onReader, onInbox, onSources, onSettings }: WorkspaceHeaderProps) {
-  const { t } = useLanguage();
+export function WorkspaceHeader({ active, onReader, onInbox, onSources, onSettings, onAccount }: WorkspaceHeaderProps) {
+  const { t, language } = useLanguage();
   return (
     <header className="hidden min-h-[74px] shrink-0 items-center justify-between gap-5 border-b border-border bg-paper px-5 lg:flex xl:px-8">
       <div className="flex min-w-0 items-center gap-4">
@@ -39,6 +40,9 @@ export function WorkspaceHeader({ active, onReader, onInbox, onSources, onSettin
       <div className="flex shrink-0 items-center gap-2">
         <button type="button" onClick={onSources} className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 text-xs font-medium text-ink-subtle transition hover:bg-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
           <Plug2 className="h-4 w-4 text-accent2" aria-hidden />{t("sourcesTitle")}
+        </button>
+        <button type="button" onClick={onAccount} className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 text-xs font-medium text-ink-subtle transition hover:bg-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
+          <UserRound className="h-4 w-4" aria-hidden />{language === "ar" ? "الحساب" : "Account"}
         </button>
         <button type="button" onClick={onSettings} className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 text-xs font-medium text-ink-subtle transition hover:bg-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2">
           <Settings2 className="h-4 w-4" aria-hidden />{t("settings")}
