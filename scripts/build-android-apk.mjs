@@ -13,7 +13,7 @@ const android = join(root, "android");
 const isWindows = process.platform === "win32";
 const gradlew = join(android, isWindows ? "gradlew.bat" : "gradlew");
 const apk = join(android, "app", "build", "outputs", "apk", "debug", "app-debug.apk");
-const target = join(root, "artifacts", "al-rawi-debug.apk");
+const target = join(root, "artifacts", "al-rawi-full-test.apk");
 
 function run(command, args, cwd = root) {
   console.log("\n> " + [command, ...args].join(" ") + "\n");
@@ -61,9 +61,9 @@ try {
   mkdirSync(dirname(target), { recursive: true });
   copyFileSync(apk, target);
 
-  console.log("\nAndroid debug APK created: " + target);
+  console.log("\nAndroid test APK created: " + target);
   console.log("Size: " + (statSync(target).size / (1024 * 1024)).toFixed(1) + " MB");
-  console.log("Install: adb install -r artifacts/al-rawi-debug.apk");
+  console.log("Install: adb install -r artifacts/al-rawi-full-test.apk");
   console.log("A successful build is not a substitute for real-device acceptance tests.");
 } catch (error) {
   console.error("\nAndroid APK build failed: " + error.message);

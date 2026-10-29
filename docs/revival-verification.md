@@ -49,12 +49,12 @@ Requires Node.js, JDK 21 and Android SDK Platform 36 with Build Tools 36. Set JA
     npm run build
     npm run android:apk
 
-The last command exports the Next.js static site, syncs Capacitor Android/plugins, compiles native code with the Gradle wrapper and copies a debug-signed APK to artifacts/al-rawi-debug.apk.
+The last command exports the Next.js static site, syncs Capacitor Android/plugins, compiles native code with the Gradle wrapper and copies a debug-signed APK to artifacts/al-rawi-full-test.apk.
 
 To install with USB Debugging:
 
     adb devices
-    adb install -r artifacts/al-rawi-debug.apk
+    adb install -r artifacts/al-rawi-full-test.apk
 
 For Google source connections, create a real Android OAuth client ID for package com.hany.alrawi and the signing certificate SHA-1 in Google Cloud Console, enable Gmail and YouTube Data API v3, set up consent and testers, then build with:
 

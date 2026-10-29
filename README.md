@@ -114,14 +114,14 @@ sync for the native Android plugins, compiles Kotlin/Java with the Gradle
 wrapper, and produces:
 
 ~~~text
-artifacts/al-rawi-debug.apk
+artifacts/al-rawi-full-test.apk
 ~~~
 
 To install on an Android phone with USB debugging enabled:
 
 ~~~bash
 adb devices
-adb install -r artifacts/al-rawi-debug.apk
+adb install -r artifacts/al-rawi-full-test.apk
 ~~~
 
 This is a **debug-signed APK for testing**, not a release build or Play Store

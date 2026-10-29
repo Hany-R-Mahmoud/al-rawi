@@ -23,7 +23,9 @@ try {
     renameSync(source, target);
     moved.push({ source, target });
   }
-  execFileSync(npx, ["next", "build"], {
+  // Turbopack cannot bind its local build-helper port in some locked-down
+  // environments. Webpack produces the same static export without that server.
+  execFileSync(npx, ["next", "build", "--webpack"], {
     stdio: "inherit",
     shell: isWindows,
     env: { ...process.env, CAPACITOR_BUILD: "1", NEXT_PUBLIC_CAPACITOR_BUILD: "1" },

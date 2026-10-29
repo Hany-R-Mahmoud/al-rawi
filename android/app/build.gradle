@@ -10,6 +10,10 @@ def googleScheme = googleClientValid ? 'com.googleusercontent.apps.' + rawGoogle
 android {
     namespace = "com.hany.alrawi"
     compileSdk = rootProject.ext.compileSdkVersion
+    // Keep Kotlin bytecode aligned with the Java 21 target configured by Capacitor.
+    kotlinOptions {
+        jvmTarget = '21'
+    }
     buildFeatures { buildConfig = true }
     defaultConfig {
         manifestPlaceholders = [appAuthRedirectScheme: googleScheme]
