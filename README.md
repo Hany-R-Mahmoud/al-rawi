@@ -42,8 +42,8 @@ The test script covers focused library tests; there is no conventional test dire
   install guidance, dismissal recovery, and embedded-browser fallbacks.
 
 Earlier versions of the app had no account system, database, environment-variable
-contract, cron worker, or server-side feed store. A **not-yet-deployed** optional
-Neon account integration is being added on `feat/neon-auth-foundation`.
+contract, cron worker, or server-side feed store. The optional web account and
+manual RSS backup integration is now on `main`, with Google OAuth hosted by the app.
 The older implementation brief in
 [`064-rss-reader-web.md`](064-rss-reader-web.md) describes capabilities that are
 not present in the current source, including a read-later queue and IndexedDB
@@ -151,16 +151,16 @@ Both use the existing Paper & Ink aesthetic. New filenames prevent stale
 browser image optimization caches. They are shipped in both the web and
 Capacitor Android builds; the Android app needs rebuilding to include them.
 
-## Optional Neon account — development branch, not deployed
+## Optional web account and manual RSS backup
 
-The `feat/neon-auth-foundation` branch adds Google login for the web via Neon Managed Better Auth and an optional **manual** RSS backup/restore feature. Public RSS reading stays guest-first and local-first. Each authenticated account has its own user-scoped feed and RSS state records in Neon. Google Gmail/YouTube content and tokens are **never** uploaded by the backup endpoint.
+Google login for the web uses app-hosted Better Auth and an optional **manual** RSS backup/restore feature. Public RSS reading stays guest-first and local-first. Each authenticated account has its own user-scoped feed and RSS state records in Neon. Google Gmail/YouTube content and tokens are **never** uploaded by the backup endpoint.
 
 There is **no automated cross-device sync** and **no Android user-account login** yet. Existing Android source authorization (Gmail/YouTube) remains separate. See [integration status and required tests](docs/NEON_ACCOUNT_IMPLEMENTATION_HANDOFF.md).
 
-Dependency repairs and current verification limits are recorded in the
+Historical dependency repairs and verification limits are recorded in the
 [integration repair report](docs/NEON_REPAIR_REPORT_2026-10-16.md). Google OAuth
 and two-account isolation passed on the dedicated Neon test branch. The
 authenticated forged `user_id` backup POST check remains pending before merge
 or deployment.
 
-The server requires `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, and `DATABASE_URL`. Production variables are provisioned in Vercel, not in GitHub. Local values must be kept in the gitignored `.env.local`; the Google Web Client Secret lives in Neon Auth, not in a browser-visible variable. Do not copy production credentials into untrusted preview deployments.
+Google web login now uses app-hosted Better Auth at `https://al-rawi-rss.vercel.app/api/auth/callback/google`, reusing the existing `neon_auth` tables and account IDs. The server requires `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET`. Production variables are provisioned in Vercel, not in GitHub. Keep local values in the gitignored `.env.local`; never expose secrets in browser variables or untrusted previews. Existing users sign in again after this migration. Full Google login and authenticated backup acceptance on the new flow remain unverified.

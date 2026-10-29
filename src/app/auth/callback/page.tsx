@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 
 /**
- * After proxy.ts completes the Neon OAuth cookie exchange, return to reader.
+ * After the app-hosted OAuth callback completes its cookie exchange, return to reader.
  * The reader remains accessible without signing in.
  */
 export default function AuthCallback() {

@@ -45,6 +45,13 @@ flowchart TD
 
 ## External boundaries and controls
 
+Google web authentication uses app-hosted Better Auth in `src/lib/auth/app.ts` and
+`src/app/api/auth/[...path]/route.ts`. It reuses the existing Neon Auth schema and
+user UUIDs. The backup route validates the signed session through
+`src/lib/auth/server.ts` before using that user ID in every backup query. The
+Google callback is hosted on `al-rawi-rss.vercel.app`; the public reader and native
+Gmail/YouTube source permissions retain their existing boundaries.
+
 - The app makes outbound requests only through the two same-origin route
   handlers for reader operations.
 - `fetchPublicResource` accepts only HTTP(S), rejects private hostnames and

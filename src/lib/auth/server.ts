@@ -1,13 +1,16 @@
 import "server-only";
-import { createNeonAuth } from "@neondatabase/auth/next/server";
+import { headers } from "next/headers";
+import { appAuth } from "./app";
 
 /**
- * Managed Neon Auth: provider credentials belong to Neon, never to browser code.
+ * App-hosted Better Auth: provider credentials belong to this server, never to browser code.
  * Cookie secret is distinct from the Google Web OAuth Client Secret.
+ * Existing Neon Auth tables retain the account and backup ownership IDs.
  */
-export const auth = createNeonAuth({
-  baseUrl: process.env.NEON_AUTH_BASE_URL!,
-  cookies: {
-    secret: process.env.NEON_AUTH_COOKIE_SECRET!,
+// Google sessions now use this app's domain and the existing Neon user IDs.
+export const auth = {
+  async getSession() {
+    const data = await appAuth().api.getSession({ headers: await headers() });
+    return { data, error: null };
   },
-});
+};
