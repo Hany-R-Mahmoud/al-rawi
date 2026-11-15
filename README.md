@@ -84,15 +84,13 @@ The Android test APK can retain notifications from owner-chosen apps after they 
 
 ## Privacy-first Content Hub (Android and Web)
 
-Al-Rawi organizes **source content**, not other apps' notifications. Follow
+Al-Rawi organizes **source content** and optionally notifications from owner-selected Android apps. Follow
 RSS/Atom feeds, GitHub public releases, YouTube subscriptions or a chosen
 Gmail label, or explicitly save a link or note. Items have independent
 Read/Unread and Saved/Done/Archived states. Opening an Inbox card shows an
 in-app view if the source permits it or a link to the original.
 
-Android no longer has NotificationListenerService or Notification Access.
-The old sensitive captured-notification database is removed on app upgrade.
-Android instead receives only user-initiated Share -> Al-Rawi text/URL intents;
+Android supports user-granted, package-scoped notification capture with an on-device pre-import SQLite queue. Android also receives user-initiated Share -> Al-Rawi text/URL intents;
 Web uses a paste action. Google source connectors are still Android-only and
 require real OAuth; no credentials, mock records or cross-device sync are
 included. Gmail readonly is a restricted scope that is broader than the
