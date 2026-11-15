@@ -79,6 +79,10 @@
   },
   "issues": [
     {
+      "en": "Android Google source request and callback defects repaired; two instrumentation tests pass on Android 16 with 16 KB pages. Gmail and YouTube reach Google, but real authorization is blocked because the configured Android client's custom URI scheme is disabled. See ANDROID_OAUTH_16KB_2026-11-14.md.",
+      "ar": "تم إصلاح بناء طلب ربط مصادر جوجل ورسالة الرجوع، ونجح اختباران على محاكي أندرويد ١٦ بصفحات ذاكرة ١٦ كيلوبايت. يصل جيميل ويوتيوب إلى جوجل، لكن التفويض الفعلي محجوب لأن إعداد عنوان الرجوع المخصص غير مفعّل لعميل أندرويد."
+    },
+    {
       "en": "The declared test command covers focused library tests; broader UI and device coverage remains limited.",
       "ar": "The declared test command covers focused library tests; broader UI and device coverage remains limited."
     },

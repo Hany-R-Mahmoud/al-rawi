@@ -36,6 +36,7 @@ There is no cloud synchronization of Inbox items. Data is per device/browser and
 - Any public RSS/Atom URL: Web and Android, using the existing secure feed proxy.
 - GitHub **public repository releases only**: an Atom feed; no private GitHub account notifications.
 - YouTube and Gmail: real but Android-only Google OAuth connectors; without an Android Google OAuth Client ID they are unconfigured, not mocked.
+- Android 16 / 16 KB retest (14 November 2026): the rebuilt connectors open Google, but the configured client rejects the custom URI scheme. Full source authorization/import is blocked pending a provider configuration decision or native authorization migration. See [repair and test evidence](ANDROID_OAUTH_16KB_2026-11-14.md).
 - Other apps: user-initiated Share Sheet or manual paste. No claim of automatic WhatsApp, Outlook, Slack or Telegram integrations.
 
 ## Build from the terminal

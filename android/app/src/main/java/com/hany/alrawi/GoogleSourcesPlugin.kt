@@ -1,8 +1,10 @@
 package com.hany.alrawi
 
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
@@ -33,6 +35,28 @@ class GoogleSourcesPlugin : Plugin() {
             val plugin = active?.get() ?: return
             plugin.activity?.runOnUiThread { plugin.notifyListeners("sourcesChanged", JSObject()) }
         }
+
+        internal fun authorizationRequest(
+            configuration: AuthorizationServiceConfiguration, clientId: String, scope: String
+        ): AuthorizationRequest {
+            val prefix = clientId.removeSuffix(".apps.googleusercontent.com")
+            val redirect = Uri.parse("com.googleusercontent.apps." + prefix + ":/oauth2redirect")
+            return AuthorizationRequest.Builder(configuration, clientId, ResponseTypeValues.CODE, redirect)
+                .setScope(scope)
+                .setPrompt(AuthorizationRequest.Prompt.CONSENT)
+                .setAdditionalParameters(mapOf("access_type" to "offline"))
+                .build()
+        }
+
+        internal fun resultIntent(context: Context, source: String, code: Int): PendingIntent {
+            // AppAuth adds the authorization response to this explicit activity intent.
+            val mutable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+            return PendingIntent.getActivity(
+                context, code,
+                Intent(context, AuthResultActivity::class.java).putExtra("source", source),
+                PendingIntent.FLAG_UPDATE_CURRENT or mutable
+            )
+        }
     }
 
     private val worker = Executors.newSingleThreadExecutor()
@@ -60,22 +84,13 @@ class GoogleSourcesPlugin : Plugin() {
         val scope = scopes[source] ?: return call.reject("Unknown source")
         if (clientId.isBlank()) return call.reject("Google Android OAuth client ID not configured")
         try {
-            val prefix = clientId.removeSuffix(".apps.googleusercontent.com")
-            val redirect = Uri.parse("com.googleusercontent.apps." + prefix + ":/oauth2redirect")
-            val request = AuthorizationRequest.Builder(
-                configuration, clientId, ResponseTypeValues.CODE, redirect
-            ).setScope(scope).setAdditionalParameters(
-                mapOf("access_type" to "offline", "prompt" to "consent")
-            ).build()
+            val request = authorizationRequest(configuration, clientId, scope)
 
             val requestCode = if (source == "gmail") 42 else 43
-            fun resultIntent(code: Int) = PendingIntent.getActivity(
-                context, code,
-                Intent(context, AuthResultActivity::class.java).putExtra("source", source),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
             val service = AuthorizationService(context)
-            service.performAuthorizationRequest(request, resultIntent(requestCode), resultIntent(requestCode + 100))
+            service.performAuthorizationRequest(
+                request, resultIntent(context, source, requestCode), resultIntent(context, source, requestCode + 100)
+            )
             service.dispose()
             // This resolves only the launch. The source remains disconnected until code exchange completes.
             call.resolve()
