@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
 import { loadInboxPreview, type InboxPreview } from "@/lib/inbox-preview";
 import { openExternalUrl } from "@/lib/open-url";
+import { isCaptureNative, openCapturedApp } from "@/lib/native-capture";
 import type { InboxItem, InboxStatus } from "@/lib/inbox-types";
 
 type Props = {
@@ -22,6 +23,7 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
   const [loading, setLoading] = useState(false);
   const [playVideo, setPlayVideo] = useState(false);
   const [error, setError] = useState("");
+  const [failedPackage, setFailedPackage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!item) return;
@@ -57,6 +59,7 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
             {item.status !== "done" && <Button variant="ghost" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("done")}><CircleCheck className="h-4 w-4"/>{t("inboxDone")}</Button>}
             {item.status !== "archived" && <Button variant="ghost" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("archived")}><Archive className="h-4 w-4"/>{t("inboxArchive")}</Button>}
             {item.status === "archived" && <Button variant="outline" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("new")}><Check className="h-4 w-4"/>{t("inboxRestore")}</Button>}
+            {isCaptureNative() && item.packageName && failedPackage !== item.packageName && <Button variant="outline" size="sm" className="min-h-11" onClick={() => void openCapturedApp(item.packageName!).catch(() => setFailedPackage(item.packageName!))}>{t("captureOpenApp")}</Button>}
             {item.url && <Button variant="default" size="sm" className="min-h-9 gap-1.5" onClick={() => void openExternalUrl(item.url!).catch(() => setError(t("inboxError")))}><ArrowUpRight className="h-4 w-4"/>{t("hubOpenOriginal")}</Button>}
           </div>
         </DialogHeader>

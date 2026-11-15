@@ -5,14 +5,13 @@ import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
 
 /**
- * Privacy-first: receive user-initiated ACTION_SEND intents.
- * Explicitly remove the historical notification-listener database on app upgrade.
+ * Receive explicit shares and register the local notification capture bridge.
  */
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        deleteDatabase("notifications.db");
         registerPlugin(SharedContentPlugin.class);
+        registerPlugin(NotificationCapturePlugin.class);
         registerPlugin(GoogleSourcesPlugin.class);
         super.onCreate(savedInstanceState);
         SharedContentPlugin.receiveIntent(this, getIntent());

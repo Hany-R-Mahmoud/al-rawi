@@ -11,7 +11,7 @@ function notify() {
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB, 2);
+    const request = indexedDB.open(DB, 3);
     request.onupgradeneeded = (event) => {
       const database = request.result;
       if (event.oldVersion < 1) {
@@ -109,8 +109,7 @@ async function storedItems(): Promise<InboxItem[]> {
   try {
     return await new Promise<InboxItem[]>((resolve, reject) => {
       const req = db.transaction(STORE).objectStore(STORE).getAll();
-      req.onsuccess = () => resolve((req.result as InboxItem[]).filter((item) =>
-        item.source !== ("notification" as string) && !item.id.startsWith("notification:")));
+      req.onsuccess = () => resolve(req.result as InboxItem[]);
       req.onerror = () => reject(req.error);
     });
   } finally { db.close(); }

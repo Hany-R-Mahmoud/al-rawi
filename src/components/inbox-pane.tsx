@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Archive, Bookmark, Check, ExternalLink, Eye, EyeOff, Inbox, Mail, Plus, Plug2, RefreshCw, Rss, Search, Share2, Trash2, Tv } from "lucide-react";
+import { ArrowLeft, Archive, Bell, Bookmark, Check, ExternalLink, Eye, EyeOff, Inbox, Mail, Plus, Plug2, RefreshCw, Rss, Search, Share2, Trash2, Tv } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,8 @@ import { InboxDetail } from "@/components/inbox-detail";
 import { changeInboxStatus, deleteInboxItem, getInboxItem, listInbox, setInboxRead, upsertInboxItems } from "@/lib/inbox-store";
 import type { InboxItem, InboxStatus, InboxSource, InboxView } from "@/lib/inbox-types";
 import { syncDueSources } from "@/lib/native-sources";
+import { isNative } from "@/lib/native-shares";
+import { isListenerEnabled, openListenerSettings } from "@/lib/native-capture";
 
 const views = [
   { view: "all", label: "inboxAll" },
@@ -20,8 +22,8 @@ const views = [
   { view: "archived", label: "inboxArchived" },
 ] as const;
 
-const icons: Record<InboxSource, typeof Mail> = { rss: Rss, gmail: Mail, youtube: Tv, shared: Share2 };
-const sourceLabels = { rss: "inboxSourceRss", gmail: "inboxSourceGmail", youtube: "inboxSourceYoutube", shared: "hubShared" } as const;
+const icons: Record<InboxSource, typeof Mail> = { rss: Rss, gmail: Mail, youtube: Tv, shared: Share2, notification: Bell };
+const sourceLabels = { rss: "inboxSourceRss", gmail: "inboxSourceGmail", youtube: "inboxSourceYoutube", shared: "hubShared", notification: "inboxSourceNotification" } as const;
 
 function manualItem(content: string, title: string): InboxItem {
   const text = content.trim();
@@ -55,6 +57,20 @@ export function InboxPane({ onBack, onManageSources }: { onBack: () => void; onM
   const [addOpen, setAddOpen] = useState(false);
   const [manualTitle, setManualTitle] = useState("");
   const [manualText, setManualText] = useState("");
+  const [capturePrompt, setCapturePrompt] = useState(false);
+
+  useEffect(() => {
+    if (!isNative() || localStorage.getItem("al-rawi:capture-onboarding-dismissed") === "1") return;
+    let live = true;
+    const check = () => void isListenerEnabled().then(({ enabled }) => {
+      if (live) setCapturePrompt(!enabled);
+    }).catch(() => {});
+    check();
+    const visible = () => { if (document.visibilityState === "visible") check(); };
+    document.addEventListener("visibilitychange", visible);
+    window.addEventListener("focus", check);
+    return () => { live = false; document.removeEventListener("visibilitychange", visible); window.removeEventListener("focus", check); };
+  }, []);
 
   const refresh = useCallback(() => setRevision((n) => n + 1), []);
   useEffect(() => {
@@ -148,6 +164,14 @@ export function InboxPane({ onBack, onManageSources }: { onBack: () => void; onM
         </div>
       </header>
       <div className="mx-auto flex w-full max-w-6xl min-h-0 flex-1 flex-col px-5 pt-5 sm:px-9 sm:pt-7">
+        {capturePrompt && <section className="mb-5 rounded-md border border-border bg-paper-raised p-4" aria-label={t("captureOnboardingTitle")}>
+          <h2 className="text-lg font-semibold text-ink">{t("captureOnboardingTitle")}</h2>
+          <p className="mt-2 text-sm leading-6 text-ink-subtle">{t("captureOnboardingBody")}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button className="min-h-11" onClick={() => void openListenerSettings().catch(() => setError(t("inboxError")))}>{t("captureGrantAction")}</Button>
+            <Button variant="ghost" className="min-h-11" onClick={() => { localStorage.setItem("al-rawi:capture-onboarding-dismissed", "1"); setCapturePrompt(false); }}>{t("captureDismiss")}</Button>
+          </div>
+        </section>}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
           <div role="group" aria-label={t("inbox")} className="flex flex-wrap items-center gap-1">
             {views.map(({ view: value, label }) => (
@@ -199,7 +223,7 @@ export function InboxPane({ onBack, onManageSources }: { onBack: () => void; onM
                         {item.status !== "done" && <Button variant="ghost" size="sm" className="min-h-9 gap-1 text-xs" onClick={() => void onStatus(item, "done").catch(() => setError(t("inboxError")))}><Check className="h-3.5 w-3.5" />{t("inboxDone")}</Button>}
                         {item.status !== "archived" && <Button variant="ghost" size="sm" className="min-h-9 gap-1 text-xs" onClick={() => void onStatus(item, "archived").catch(() => setError(t("inboxError")))}><Archive className="h-3.5 w-3.5" />{t("inboxArchive")}</Button>}
                         {item.status === "archived" && <Button variant="ghost" size="sm" className="min-h-9 text-xs" onClick={() => void onStatus(item, "new").catch(() => setError(t("inboxError")))}>{t("inboxRestore")}</Button>}
-                        {item.source === "shared" && <Button variant="ghost" size="sm" className="min-h-9 gap-1 text-xs text-ink-faint" onClick={() => void deleteInboxItem(item.id).catch(() => setError(t("inboxError")))}><Trash2 className="h-3.5 w-3.5" />{t("hubDelete")}</Button>}
+                        {(item.source === "shared" || item.source === "notification") && <Button variant="ghost" size="sm" className="min-h-9 gap-1 text-xs text-ink-faint" onClick={() => void deleteInboxItem(item.id).catch(() => setError(t("inboxError")))}><Trash2 className="h-3.5 w-3.5" />{t("hubDelete")}</Button>}
                       </div>
                     </div>
                   </article>

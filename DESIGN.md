@@ -96,3 +96,10 @@ The Hero now uses two original, high-resolution generated photographs: public/vi
 ### Impeccable audit
 
 The Impeccable CLI was installed in the local dev environment and used for a page scan and component review. The scan highlighted small type, borderline contrast and repeated boilerplate headline kickers. Updates improved legibility, contrast and hierarchy. The vendored skill files are **not a runtime dependency**. See docs/revival-ui-audit.md for the screen-by-screen review.
+
+
+## Scoped notification capture extension (November 2026)
+
+Sources adds one native-only permission and app-switch section. Inbox adds one skippable prompt and notification cards following the existing paper-and-ink layout. The existing mobile bottom navigation, typography, dark mode and spacing remain unchanged. New cards use the existing `Bell` icon from Lucide; no new images or typefaces are introduced.
+
+Verified theme source numbers from `src/app/globals.css` (no changes): light `paper hsl(40 30% 97%)`, `paper-raised hsl(0 0% 100%)`, `ink hsl(20 14% 8%)`, `ink-subtle hsl(20 8% 30%)`, `ink-faint hsl(20 6% 42%)`, `accent2 hsl(15 80% 42%)`; dark `paper hsl(20 8% 7%)`, `paper-raised hsl(20 8% 11%)`, `ink hsl(40 20% 92%)`, `ink-subtle hsl(40 10% 72%)`, `ink-faint hsl(40 6% 50%)`, `accent2 hsl(18 90% 62%)`; `radius 0.625rem`. No token numbers were re-derived and no token-versus-Impeccable conflict was applied. Contrast, 390px RTL, 200% text and tap-target checks remain unverified without a browser/emulator.

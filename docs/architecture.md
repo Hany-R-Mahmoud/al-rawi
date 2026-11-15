@@ -43,6 +43,10 @@ flowchart TD
   L --> M["reader pane"]
 ```
 
+## Android notification capture path
+
+`NotificationCaptureService.kt` filters every event using the owner-selected `alrawi_capture/packages_v1` SharedPreferences allowlist, then writes through `NotificationDb.kt` to private `notifications.db`, including while the WebView is closed. Dismissal does not remove records. `NotificationCapturePlugin.kt` exposes permission checks, per-app settings, the launchable-app list, queue listing, acknowledgements, and native events. `src/lib/native-capture.ts` imports to `src/lib/inbox-store.ts` (IndexedDB schema 3) and only acknowledges native queue rows after persistence. Already imported IDs cannot be reintroduced by notification reposts; saved/read/done/archive actions remain device-local. No captured content is sent to Neon, Vercel or any API. Existing Google source connectors and explicit Share flow remain separate.
+
 ## External boundaries and controls
 
 Google web authentication uses app-hosted Better Auth in `src/lib/auth/app.ts` and
@@ -94,12 +98,10 @@ copy link. The host application may still block external-browser navigation.
 The existing Next.js RSS Reader and SSRF-protected article extraction backend
 remain. The new unified Inbox saves entries and triage states to client-side
 IndexedDB. Read state (readAt) and organization (new, saved, done, archived)
-are independent; source refreshes preserve both. IndexedDB v2 removes old
-notification-derived items if any were previously copied there.
+are independent; source refreshes preserve both. IndexedDB version 3 retains captured notification items. The historical version-1-to-2 purge is not re-run for version-2 upgrades.
 
-The Android Native NotificationListenerService is REMOVED. MainActivity
-deletes the historical notifications.db on app upgrade. The new
-SharedContentPlugin receives only user-initiated ACTION_SEND text/URL shares
+The Android NotificationCaptureService and NotificationCapturePlugin handle only packages selected in local settings. MainActivity preserves notifications.db across launches. Independently,
+SharedContentPlugin receives user-initiated ACTION_SEND text/URL shares
 from the Android Sharesheet. A small local queue is only acknowledged after
 successful IndexedDB persistence, surviving WebView startup delays.
 

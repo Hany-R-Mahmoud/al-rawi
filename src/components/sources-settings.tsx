@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, GitBranch, LockKeyhole, Mail, Plug2, RefreshCw, Rss, Share2, Tv } from "lucide-react";
+import { Bell, CheckCircle2, GitBranch, LockKeyhole, Mail, Plug2, RefreshCw, Rss, Share2, Tv } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/language-provider";
 import { useNative } from "@/hooks/use-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { getCapturePackages, isListenerEnabled, listLaunchableApps, openListenerSettings, setCapturePackages, type CaptureApp } from "@/lib/native-capture";
 import { githubReleasesFeed } from "@/lib/source-catalog";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { isNative } from "@/lib/native-shares";
@@ -28,6 +30,36 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
   const [feedUrl, setFeedUrl] = useState("");
   const [githubRepo, setGithubRepo] = useState("");
   const [adding, setAdding] = useState(false);
+  const [captureEnabled, setCaptureEnabled] = useState<boolean | null>(null);
+  const [capturePackages, setCapturePackagesState] = useState<string[]>([]);
+  const [captureApps, setCaptureApps] = useState<CaptureApp[]>([]);
+  const [captureBusy, setCaptureBusy] = useState(false);
+  const [captureError, setCaptureError] = useState(false);
+  const [addAppsOpen, setAddAppsOpen] = useState(false);
+
+  const refreshCapture = useCallback(async () => {
+    if (!isNative()) return;
+    try {
+      const [permission, selected, available] = await Promise.all([
+        isListenerEnabled(), getCapturePackages(), listLaunchableApps(),
+      ]);
+      setCaptureEnabled(permission.enabled);
+      setCapturePackagesState(selected.packages);
+      setCaptureApps(available.apps);
+      setCaptureError(false);
+    } catch { setCaptureError(true); }
+  }, []);
+
+  const toggleCapture = async (name: string, enabled: boolean) => {
+    setCaptureBusy(true);
+    try {
+      const next = enabled ? [...capturePackages, name] : capturePackages.filter((p) => p !== name);
+      const result = await setCapturePackages(next);
+      setCapturePackagesState(result.packages);
+      setCaptureError(false);
+    } catch { setCaptureError(true); }
+    finally { setCaptureBusy(false); }
+  };
 
   const refresh = useCallback(async () => {
     if (!isNative()) return;
@@ -44,14 +76,15 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
   }, [t]);
 
   useEffect(() => {
-    queueMicrotask(() => { void refresh(); });
-    const visible = () => { if (document.visibilityState === "visible") void refresh(); };
+    queueMicrotask(() => { void refresh(); void refreshCapture(); });
+    const visible = () => { if (document.visibilityState === "visible") { void refresh(); void refreshCapture(); } };
     let dispose: (() => Promise<void>) | undefined;
     let dead = false;
-    void onSourcesChanged(() => void refresh()).then((cleanup) => { if (dead) void cleanup(); else dispose = cleanup; }).catch(() => {});
+    void onSourcesChanged(() => { void refresh(); void refreshCapture(); }).then((cleanup) => { if (dead) void cleanup(); else dispose = cleanup; }).catch(() => {});
     document.addEventListener("visibilitychange", visible);
-    return () => { dead = true; void dispose?.(); document.removeEventListener("visibilitychange", visible); };
-  }, [refresh]);
+    window.addEventListener("focus", refreshCapture);
+    return () => { dead = true; void dispose?.(); document.removeEventListener("visibilitychange", visible); window.removeEventListener("focus", refreshCapture); };
+  }, [refresh, refreshCapture]);
 
   const connect = async (source: GoogleSource) => {
     setBusy(source);
@@ -143,8 +176,44 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
             <p className="mt-1 text-xs leading-6 text-ink-subtle">{t("hubShareGuide")}</p>
           </div>
         </div>
-        <p className="border-s-2 border-accent2 bg-muted/45 px-4 py-3 text-xs leading-6 text-ink-subtle">{t("hubNoNotificationAccess")}</p>
+
       </div>
+      {native && <section className="space-y-4 border-y border-border py-5" aria-label={t("captureTitle")}>
+        <div className="flex items-center gap-3">
+          <Bell className="h-5 w-5 shrink-0 text-accent2" aria-hidden />
+          <h4 className="font-semibold text-ink">{t("captureTitle")}</h4>
+        </div>
+        <p className="text-sm leading-6 text-ink-subtle">{t("capturePrivacy")}</p>
+        {captureEnabled === false && <>
+          <p className="text-sm leading-6 text-ink-subtle">{t("captureHintOff")}</p>
+          <Button className="min-h-11" onClick={() => void openListenerSettings().catch(() => setCaptureError(true))}>{t("captureGrantAction")}</Button>
+        </>}
+        {captureEnabled === true && <>
+          <p className="text-sm leading-6 text-ink-subtle">{t("captureOn")}</p>
+          <h5 className="font-medium text-ink">{t("captureAppsTitle")}</h5>
+          {!capturePackages.length && <p className="text-sm text-ink-subtle">{t("captureEmptyApps")}</p>}
+          <div className="space-y-2">
+            {capturePackages.map((name) => {
+              const label = captureApps.find((app) => app.packageName === name)?.label ||
+                (name === "com.google.android.youtube" ? "YouTube" : name === "com.google.android.gm" ? "Gmail" : name);
+              return <label key={name} className="flex min-h-11 items-center justify-between gap-4 rounded-md border border-border px-3 py-2 text-sm text-ink">
+                <span dir="auto" className="min-w-0 break-words">{label}</span>
+                <Switch aria-label={label} checked disabled={captureBusy} onCheckedChange={() => void toggleCapture(name, false)} />
+              </label>;
+            })}
+          </div>
+          <Button variant="outline" className="min-h-11" onClick={() => setAddAppsOpen((v) => !v)}>{t("captureAddApp")}</Button>
+          {addAppsOpen && <div className="max-h-64 space-y-2 overflow-y-auto">
+            {captureApps.filter((app) => !capturePackages.includes(app.packageName)).map((app) =>
+              <label key={app.packageName} className="flex min-h-11 items-center justify-between gap-4 border-b border-border px-2 py-1 text-sm text-ink">
+                <span dir="auto" className="min-w-0 break-words">{app.label}</span>
+                <Switch aria-label={app.label} checked={false} disabled={captureBusy || capturePackages.length >= 50} onCheckedChange={() => void toggleCapture(app.packageName, true)} />
+              </label>
+            )}
+          </div>}
+        </>}
+        {captureError && <p role="alert" className="text-xs text-destructive">{t("inboxError")}</p>}
+      </section>}
       {!native && <p className="border-s-2 border-accent2 bg-muted/45 px-4 py-3 text-xs leading-6 text-ink-subtle">{t("sourcesNativeOnly")} {t("uiSourcesNoAccount")}</p>}
       {native && !configured && <p className="border-s-2 border-accent2 bg-muted/45 px-4 py-3 text-xs leading-6 text-ink-subtle">{t("uiSourceNoClient")}</p>}
       {error && <p role="alert" className="border-s-2 border-destructive px-3 py-2 text-xs text-destructive">{error}</p>}
