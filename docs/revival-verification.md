@@ -1,25 +1,22 @@
 # Al-Rawi Content Hub: privacy, build and device acceptance
 
-This branch changes the product from Notification History to a privacy-first Content Hub. Device sharing and real Google account acceptance MUST be tested before shipping. A successful APK build is not proof of Play Protect approval or working OAuth.
+Al-Rawi is a privacy-first Content Hub with optional, explicitly scoped Android notification capture. Device sharing and real Google account acceptance MUST be tested before shipping. A successful APK build does not prove Play Protect approval or working OAuth. A successful APK build is not proof of Play Protect approval or working OAuth.
 
 ## What users get
 
 - Web and Android: public RSS/Atom feeds, including blogs, podcasts and GitHub public release feeds; saved links and notes.
-- Android: user-initiated Share -> Al-Rawi for plain text and URLs. Al-Rawi never asks to read other apps' notifications.
+- Android: user-initiated Share -> Al-Rawi for plain text and URLs. Optional Notification Access captures only owner-selected app packages (YouTube and Gmail by default).
 - Android optional Google OAuth: selected Gmail newsletter label previews and YouTube subscriptions. Requires real Android OAuth client ID and an eligible account.
 - Unified Inbox: All, Unread, Read, Saved, Done, Archived and Search. Read/unread is independent of Saved/Done.
 - Item detail: full RSS article when the existing protected backend can extract it; optional on-demand Gmail plain-text email body; YouTube click-to-play privacy-enhanced embed; and Open Original link. Some source pages offer only a preview.
 
-## Removed security-sensitive behavior
+## Scoped native notification capture
 
-- Removed the Android NotificationListenerService and the NotificationCapture Capacitor plugin, including the BIND_NOTIFICATION_LISTENER_SERVICE permission in the manifest.
-- On Android app startup, MainActivity deletes the old notifications.db SQLite archive to erase historical notification content from previous versions.
-- IndexedDB schema v2 deletes any legacy notification items inadvertently copied into the web database.
-- Never read, receive, or archive bank alerts, OTP notifications, WhatsApp notifications or other apps' notifications in the background.
+Android's `NotificationCaptureService` listens only after the owner grants Notification Access. The allowlist defaults to YouTube and Gmail; the owner can switch either off, add other launchable apps, or leave the list empty. Every posted notification re-reads the list and skips Al-Rawi itself, ongoing notifications, group summaries and blank notifications. Selected titles and text are capped, URLs are validated, and notification IDs deduplicate reposts. Clearing a shade notification does not delete its stored row.
 
-The new SharedContentPlugin receives only ACTION_SEND plain text/HTML shared by user choice, and queues it privately on device until IndexedDB confirms persistence. Shared content is then acknowledged and removed from the queue. The app has internet permission for network sources.
+`NotificationDb` queues notifications in the app-private `notifications.db` (maximum 1,000 pending and 500 imported copies). The `NotificationCapture` bridge imports records into the existing IndexedDB Inbox and acknowledges them only after IndexedDB commits; Imported rows cannot overwrite saved/read state on repost. Captured contents stay on-device, without notification-content logging, background cloud uploads or server sync. The optional capture list and Notification Access are independent from Google OAuth. The explicit Share → Al-Rawi path is unchanged.
 
-No Android listener offers a permission-free way of reading other apps' notifications. This redesign intentionally gives up that feature. A new APK still needs to be tried without disabling Google Play Protect.
+The Android build is a sideloaded debug test APK: no Play Store availability, Play Protect bypass, or automatic acceptance is claimed. Real Gmail and YouTube notification checks, including dismissal and installation over the existing APK, belong to the owner on a real phone. Android can stop or restrict listener delivery; a missed system delivery cannot be retroactively recovered once removed from the shade.
 
 ## Privacy and Google permission disclosure
 
