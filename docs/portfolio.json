@@ -6,8 +6,8 @@
     "ar": "Al-Rawi"
   },
   "summary": {
-    "en": "A privacy-first bilingual content hub for RSS/Atom, explicit shares, Gmail and YouTube, with independent read and saved states. No notification access.",
-    "ar": "مركز محتوى ثنائي اللغة يراعي الخصوصية لخلاصات RSS وAtom والمشاركات وGmail ويوتيوب، بدون صلاحية قراءة الإشعارات."
+    "en": "A privacy-first bilingual content hub for RSS/Atom, explicit shares, Gmail and YouTube, with independent read and saved states and opt-in on-device notification capture from owner-chosen Android apps.",
+    "ar": "مركز محتوى ثنائي اللغة يراعي الخصوصية لخلاصات RSS وAtom والمشاركات وGmail ويوتيوب، مع التقاط اختياري لإشعارات تطبيقات أندرويد التي يحددها المستخدم، وتخزينها على الجهاز فقط."
   },
   "status": "showcase",
   "portfolio": true,
