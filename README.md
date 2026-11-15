@@ -51,7 +51,7 @@ offline cache.
 
 ## Content Hub: optional Android notification capture
 
-The Android test APK can retain notifications from owner-chosen apps after they are cleared from the shade. YouTube and Gmail are selected by default; Android Notification Access must be granted explicitly and apps can be switched on or off in Sources. The native SQLite queue survives a closed WebView and imports into the same IndexedDB Inbox on app open; its saved, done, read and archive controls are unchanged. Notification content stays on-device and is not logged or uploaded. Web/PWA never requests Android notification access. Explicit Share → Al-Rawi and RSS/Google sources remain separate.
+The Android test APK can retain notifications from owner-chosen apps after they are cleared from the shade. YouTube and Gmail are selected by default; Android Notification Access must be granted explicitly and apps can be switched on or off in Sources. The native SQLite queue survives a closed WebView and imports into the same IndexedDB Inbox on app open; its saved, done, read and archive controls are unchanged. Notification content stays on-device and is not logged or uploaded. Web/PWA never requests Android notification access. Explicit Share → Al-Rawi and RSS fetching remain separate.
 
 ## Privacy and freshness
 
@@ -85,16 +85,12 @@ The Android test APK can retain notifications from owner-chosen apps after they 
 ## Privacy-first Content Hub (Android and Web)
 
 Al-Rawi organizes **source content** and optionally notifications from owner-selected Android apps. Follow
-RSS/Atom feeds, GitHub public releases, YouTube subscriptions or a chosen
-Gmail label, or explicitly save a link or note. Items have independent
+RSS/Atom feeds and GitHub public releases, or explicitly save a link or note. Gmail and YouTube reach the Inbox only through notifications from their apps. Items have independent
 Read/Unread and Saved/Done/Archived states. Opening an Inbox card shows an
 in-app view if the source permits it or a link to the original.
 
 Android supports user-granted, package-scoped notification capture with an on-device pre-import SQLite queue. Android also receives user-initiated Share -> Al-Rawi text/URL intents;
-Web uses a paste action. Google source connectors are still Android-only and
-require real OAuth; no credentials, mock records or cross-device sync are
-included. Gmail readonly is a restricted scope that is broader than the
-chosen label; see the privacy guide for the precise boundary.
+Web uses a paste action. The Android app never connects to Gmail or YouTube accounts; selected notifications are device-only. The separate optional Al-Rawi web sign-in and manual RSS backup are unchanged.
 
 Follow the [Content Hub privacy and device guide](docs/revival-verification.md)
 before installing a new debug APK.
@@ -127,18 +123,8 @@ adb install -r artifacts/al-rawi-full-test.apk
 ~~~
 
 This is a **debug-signed APK for testing**, not a release build or Play Store
-package. If you want the Gmail/YouTube native OAuth connectors, supply a real
-Google Android OAuth client ID at build time (example for macOS/Linux):
-
-~~~bash
-ALRAWI_GOOGLE_ANDROID_CLIENT_ID=YOUR_ANDROID_CLIENT_ID npm run android:apk
-~~~
-
-Without that ID, these Google sources report unconfigured; RSS and the native
-sharing and the local Inbox can still be tested. The debug certificate's SHA-1 must
-match your Google Cloud Android OAuth client configuration. Uninstalling an
-existing build (e.g. to resolve different signing keys) deletes locally stored
-data, so do not uninstall casually. See the
+package. No Google source OAuth client ID is required. Uninstalling an existing
+build can delete local data, so do not uninstall casually. See the
 [device acceptance guide](docs/revival-verification.md).
 
 ### Hero image quality
@@ -155,9 +141,9 @@ Capacitor Android builds; the Android app needs rebuilding to include them.
 
 ## Optional web account and manual RSS backup
 
-Google login for the web uses app-hosted Better Auth and an optional **manual** RSS backup/restore feature. Public RSS reading stays guest-first and local-first. Each authenticated account has its own user-scoped feed and RSS state records in Neon. Google Gmail/YouTube content and tokens are **never** uploaded by the backup endpoint.
+Google login for the web uses app-hosted Better Auth and an optional **manual** RSS backup/restore feature. Public RSS reading stays guest-first and local-first. Each authenticated account has its own user-scoped feed and RSS state records in Neon. Captured notifications and existing legacy Inbox items are **never** uploaded by the RSS backup endpoint.
 
-There is **no automated cross-device sync** and **no Android user-account login** yet. Existing Android source authorization (Gmail/YouTube) remains separate. See [integration status and required tests](docs/NEON_ACCOUNT_IMPLEMENTATION_HANDOFF.md).
+There is **no automated cross-device sync** and **no Android user-account login** yet. Android notification capture remains independent of the web account. See [integration status and required tests](docs/NEON_ACCOUNT_IMPLEMENTATION_HANDOFF.md).
 
 Historical dependency repairs and verification limits are recorded in the
 [integration repair report](docs/NEON_REPAIR_REPORT_2026-10-16.md). Google OAuth
