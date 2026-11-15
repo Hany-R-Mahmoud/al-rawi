@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { InboxDetail } from "@/components/inbox-detail";
 import { changeInboxStatus, deleteInboxItem, getInboxItem, listInbox, setInboxRead, upsertInboxItems } from "@/lib/inbox-store";
 import type { InboxItem, InboxStatus, InboxSource, InboxView } from "@/lib/inbox-types";
-import { syncDueSources } from "@/lib/native-sources";
 import { isNative } from "@/lib/native-shares";
 import { isListenerEnabled, openListenerSettings } from "@/lib/native-capture";
 
@@ -74,10 +73,8 @@ export function InboxPane({ onBack, onManageSources }: { onBack: () => void; onM
 
   const refresh = useCallback(() => setRevision((n) => n + 1), []);
   useEffect(() => {
-    void syncDueSources();
     const onVisible = () => {
       if (document.visibilityState === "visible") {
-        void syncDueSources();
         refresh();
       }
     };
