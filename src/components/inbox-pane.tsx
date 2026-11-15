@@ -68,7 +68,8 @@ export function InboxPane({ onBack, onManageSources }: { onBack: () => void; onM
     check();
     const visible = () => { if (document.visibilityState === "visible") check(); };
     document.addEventListener("visibilitychange", visible);
-    return () => { live = false; document.removeEventListener("visibilitychange", visible); };
+    window.addEventListener("focus", check);
+    return () => { live = false; document.removeEventListener("visibilitychange", visible); window.removeEventListener("focus", check); };
   }, []);
 
   const refresh = useCallback(() => setRevision((n) => n + 1), []);
