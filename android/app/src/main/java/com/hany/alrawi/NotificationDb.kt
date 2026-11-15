@@ -61,7 +61,7 @@ internal object CaptureRules {
     }
 }
 
-internal class NotificationDb(context: Context) : SQLiteOpenHelper(context, "notifications.db", null, 1) {
+internal class NotificationDb(context: Context, databaseName: String = "notifications.db") : SQLiteOpenHelper(context, databaseName, null, 1) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""CREATE TABLE captured_notifications (
             id TEXT PRIMARY KEY, package_name TEXT NOT NULL, app_label TEXT NOT NULL,
