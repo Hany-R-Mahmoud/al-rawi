@@ -9,6 +9,57 @@ function item(id: string, override: Partial<InboxItem> = {}): InboxItem {
   return { id, source: "rss", title: "News " + id, text: "Some preview", receivedAt: now, readAt: null, status: "new", ...override };
 }
 
+// Upgrade an existing version-2 database without deleting pre-existing notifications.
+test("version 2 to 3 preserves captured notifications and their states", async () => {
+  const id = "notification:seeded";
+  const setup = indexedDB.open("al-rawi-inbox", 2);
+  await new Promise<void>((resolve, reject) => {
+    setup.onupgradeneeded = () => {
+      const store = setup.result.createObjectStore("items", { keyPath: "id" });
+      store.createIndex("receivedAt", "receivedAt");
+      store.createIndex("status", "status");
+    };
+    setup.onsuccess = () => {
+      const database = setup.result;
+      const tx = database.transaction("items", "readwrite");
+      tx.objectStore("items").put(item(id, {
+        source: "notification", title: "Channel update", text: "New video",
+        feedTitle: "YouTube", packageName: "com.google.android.youtube",
+        status: "saved", readAt: now,
+      }));
+      tx.oncomplete = () => { database.close(); resolve(); };
+      tx.onerror = () => reject(tx.error);
+    };
+    setup.onerror = () => reject(setup.error);
+  });
+  assert.equal((await getInboxItem(id))?.status, "saved");
+  assert.equal((await listInbox("saved", "youtube")).items.some((value) => value.id === id), true);
+  assert.equal((await listInbox("unread", "channel")).items.some((value) => value.id === id), false);
+  await deleteInboxItem(id);
+});
+
+test("captured notification upsert preserves status, readAt and receivedAt", async () => {
+  const id = "notification:stable";
+  const capture = item(id, { source: "notification", title: "Old", feedTitle: "Gmail",
+    packageName: "com.google.android.gm" });
+  await upsertInboxItems([capture]);
+  await changeInboxStatus(id, "saved");
+  await setInboxRead(id, true);
+  const before = await getInboxItem(id);
+  await upsertInboxItems([{ ...capture, title: "Updated", receivedAt: now + 12000, status: "new", readAt: null }]);
+  const after = await getInboxItem(id);
+  assert.equal(after?.title, "Updated");
+  assert.equal(after?.status, "saved");
+  assert.equal(after?.readAt, before?.readAt);
+  assert.equal(after?.receivedAt, before?.receivedAt);
+  await changeInboxStatus(id, "done");
+  assert.equal((await listInbox("done", "gmail")).items.some((value) => value.id === id), true);
+  await changeInboxStatus(id, "archived");
+  assert.equal((await listInbox("all", "gmail")).items.some((value) => value.id === id), false);
+  assert.equal((await listInbox("archived", "gmail")).items.some((value) => value.id === id), true);
+  await deleteInboxItem(id);
+});
+
 test("read and unread independent of saved/done", () => {
   assert.equal(inboxMatches(item("one"), "unread", ""), true);
   assert.equal(inboxMatches(item("two", { status: "saved", readAt: null }), "unread", ""), true);
