@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 class NotificationCaptureTest {
     private val base = InstrumentationRegistry.getInstrumentation().targetContext
 
-    /** Redirect both production storage boundaries into a dedicated disposable test namespace. */
+    /** Keep preferences separate from the real user; SQLite tests use a dedicated test-only database filename. */
     private val isolated = object : ContextWrapper(base) {
         override fun getSharedPreferences(name: String, mode: Int): SharedPreferences =
             base.getSharedPreferences("notification_capture_test_$name", mode)
@@ -62,7 +62,7 @@ class NotificationCaptureTest {
 
     @Test fun dedupesUpdatesAndProtectsImportedRows() {
         reset()
-        NotificationDb(isolated).use { db ->
+        NotificationDb(isolated, "notification_capture_test.db").use { db ->
             assertTrue(db.save(isolated, "com.google.android.youtube", "stable-key", 0,
                 "YouTube", "Old", "Version 1", 11))
             assertFalse(db.save(isolated, "com.google.android.youtube", "stable-key", 0,
@@ -81,7 +81,7 @@ class NotificationCaptureTest {
 
     @Test fun capsUnimportedAndImportedRows() {
         reset()
-        NotificationDb(isolated).use { db ->
+        NotificationDb(isolated, "notification_capture_test.db").use { db ->
             for (i in 0 until 1003) {
                 db.save(isolated, "com.google.android.gm", "mail-$i", 0, "Gmail", "Title", "Text", i.toLong() + 1)
             }
