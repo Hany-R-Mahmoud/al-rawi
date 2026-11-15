@@ -98,12 +98,10 @@ copy link. The host application may still block external-browser navigation.
 The existing Next.js RSS Reader and SSRF-protected article extraction backend
 remain. The new unified Inbox saves entries and triage states to client-side
 IndexedDB. Read state (readAt) and organization (new, saved, done, archived)
-are independent; source refreshes preserve both. IndexedDB v2 removes old
-notification-derived items if any were previously copied there.
+are independent; source refreshes preserve both. IndexedDB version 3 retains captured notification items. The historical version-1-to-2 purge is not re-run for version-2 upgrades.
 
-The Android Native NotificationListenerService is REMOVED. MainActivity
-deletes the historical notifications.db on app upgrade. The new
-SharedContentPlugin receives only user-initiated ACTION_SEND text/URL shares
+The Android NotificationCaptureService and NotificationCapturePlugin handle only packages selected in local settings. MainActivity preserves notifications.db across launches. Independently,
+SharedContentPlugin receives user-initiated ACTION_SEND text/URL shares
 from the Android Sharesheet. A small local queue is only acknowledged after
 successful IndexedDB persistence, surviving WebView startup delays.
 
