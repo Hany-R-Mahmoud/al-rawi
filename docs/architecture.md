@@ -43,6 +43,10 @@ flowchart TD
   L --> M["reader pane"]
 ```
 
+## Android notification capture path
+
+`NotificationCaptureService.kt` filters every event using the owner-selected `alrawi_capture/packages_v1` SharedPreferences allowlist, then writes through `NotificationDb.kt` to private `notifications.db`, including while the WebView is closed. Dismissal does not remove records. `NotificationCapturePlugin.kt` exposes permission checks, per-app settings, the launchable-app list, queue listing, acknowledgements, and native events. `src/lib/native-capture.ts` imports to `src/lib/inbox-store.ts` (IndexedDB schema 3) and only acknowledges native queue rows after persistence. Already imported IDs cannot be reintroduced by notification reposts; saved/read/done/archive actions remain device-local. No captured content is sent to Neon, Vercel or any API. Existing Google source connectors and explicit Share flow remain separate.
+
 ## External boundaries and controls
 
 Google web authentication uses app-hosted Better Auth in `src/lib/auth/app.ts` and
