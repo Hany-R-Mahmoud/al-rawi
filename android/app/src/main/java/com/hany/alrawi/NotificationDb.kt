@@ -11,7 +11,7 @@ import org.json.JSONObject
 import java.security.MessageDigest
 
 /** Only the selected packages enter this on-device, bounded pre-import queue. */
-internal object CaptureRules {
+object CaptureRules {
     private const val PREFS = "alrawi_capture"
     private const val KEY = "packages_v1"
     private val DEFAULTS = listOf("com.google.android.youtube", "com.google.android.gm")
@@ -61,7 +61,7 @@ internal object CaptureRules {
     }
 }
 
-internal class NotificationDb(context: Context, databaseName: String = "notifications.db") : SQLiteOpenHelper(context, databaseName, null, 1) {
+class NotificationDb(context: Context, databaseName: String = "notifications.db") : SQLiteOpenHelper(context, databaseName, null, 1) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("""CREATE TABLE captured_notifications (
             id TEXT PRIMARY KEY, package_name TEXT NOT NULL, app_label TEXT NOT NULL,
