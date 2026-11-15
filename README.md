@@ -49,6 +49,10 @@ The older implementation brief in
 not present in the current source, including a read-later queue and IndexedDB
 offline cache.
 
+## Content Hub: optional Android notification capture
+
+The Android test APK can retain notifications from owner-chosen apps after they are cleared from the shade. YouTube and Gmail are selected by default; Android Notification Access must be granted explicitly and apps can be switched on or off in Sources. The native SQLite queue survives a closed WebView and imports into the same IndexedDB Inbox on app open; its saved, done, read and archive controls are unchanged. Notification content stays on-device and is not logged or uploaded. Web/PWA never requests Android notification access. Explicit Share → Al-Rawi and RSS/Google sources remain separate.
+
 ## Privacy and freshness
 
 - Feed subscriptions are persisted in `localStorage` under the app’s reader key.
