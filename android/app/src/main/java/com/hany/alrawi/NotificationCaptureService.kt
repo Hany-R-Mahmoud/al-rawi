@@ -15,14 +15,14 @@ class NotificationCaptureService : NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        activeNotifications?.forEach { enqueue(it) }
+        try { activeNotifications?.forEach { enqueue(it) } } catch (_: SecurityException) { }
     }
 
     private fun enqueue(sbn: StatusBarNotification) {
         executor.execute {
-            // Filter BEFORE reading potentially sensitive extras from other apps.
-            if (!CaptureRules.eligible(applicationContext, sbn.packageName, sbn.notification.flags)) return@execute
             try {
+                // Filter BEFORE reading potentially sensitive extras from other apps.
+                if (!CaptureRules.eligible(applicationContext, sbn.packageName, sbn.notification.flags)) return@execute
                 val extras = sbn.notification.extras
                 val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
                 val body = CaptureRules.text(
