@@ -187,11 +187,13 @@ export default function Home() {
     void drain();
     const onVisible = () => { if (document.visibilityState === "visible") void drain(); };
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", drain);
     return () => {
       disposed = true;
       void remove?.();
       void removeCapture?.();
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", drain);
     };
   }, []);
 
