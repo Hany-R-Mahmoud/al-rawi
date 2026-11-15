@@ -23,12 +23,12 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
   const [loading, setLoading] = useState(false);
   const [playVideo, setPlayVideo] = useState(false);
   const [error, setError] = useState("");
-  const [canOpenApp, setCanOpenApp] = useState(true);
+  const [failedPackage, setFailedPackage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!item) return;
     let live = true;
-    queueMicrotask(() => { if (live) { setCanOpenApp(true); setLoading(true); setPreview(null); setPlayVideo(false); setError(""); } });
+    queueMicrotask(() => { if (live) { setLoading(true); setPreview(null); setPlayVideo(false); setError(""); } });
     void loadInboxPreview(item).then((result) => { if (live) setPreview(result); })
       .catch(() => { if (live) { setPreview({ kind: "text", content: item.text }); setError(t("hubPreviewLimited")); } })
       .finally(() => { if (live) setLoading(false); });
@@ -59,7 +59,7 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
             {item.status !== "done" && <Button variant="ghost" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("done")}><CircleCheck className="h-4 w-4"/>{t("inboxDone")}</Button>}
             {item.status !== "archived" && <Button variant="ghost" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("archived")}><Archive className="h-4 w-4"/>{t("inboxArchive")}</Button>}
             {item.status === "archived" && <Button variant="outline" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("new")}><Check className="h-4 w-4"/>{t("inboxRestore")}</Button>}
-            {isCaptureNative() && item.packageName && canOpenApp && <Button variant="outline" size="sm" className="min-h-11" onClick={() => void openCapturedApp(item.packageName!).catch(() => setCanOpenApp(false))}>{t("captureOpenApp")}</Button>}
+            {isCaptureNative() && item.packageName && failedPackage !== item.packageName && <Button variant="outline" size="sm" className="min-h-11" onClick={() => void openCapturedApp(item.packageName!).catch(() => setFailedPackage(item.packageName!))}>{t("captureOpenApp")}</Button>}
             {item.url && <Button variant="default" size="sm" className="min-h-9 gap-1.5" onClick={() => void openExternalUrl(item.url!).catch(() => setError(t("inboxError")))}><ArrowUpRight className="h-4 w-4"/>{t("hubOpenOriginal")}</Button>}
           </div>
         </DialogHeader>
