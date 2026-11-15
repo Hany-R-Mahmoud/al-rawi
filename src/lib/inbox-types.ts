@@ -1,4 +1,4 @@
-export type InboxSource = "rss" | "gmail" | "youtube" | "shared";
+export type InboxSource = "rss" | "gmail" | "youtube" | "shared" | "notification";
 export type InboxStatus = "new" | "saved" | "done" | "archived";
 export type InboxView = "all" | "unread" | "read" | "saved" | "done" | "archived";
 
@@ -17,4 +17,5 @@ export type InboxItem = {
   readAt?: number | null;
   author?: string;
   feedTitle?: string;
+  packageName?: string;
 };
