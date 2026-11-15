@@ -6,8 +6,8 @@
     "ar": "Al-Rawi"
   },
   "summary": {
-    "en": "A privacy-first bilingual content hub for RSS/Atom, explicit shares, Gmail and YouTube, with independent read and saved states and opt-in on-device notification capture from owner-chosen Android apps.",
-    "ar": "مركز محتوى ثنائي اللغة يراعي الخصوصية لخلاصات RSS وAtom والمشاركات وGmail ويوتيوب، مع التقاط اختياري لإشعارات تطبيقات أندرويد التي يحددها المستخدم، وتخزينها على الجهاز فقط."
+    "en": "A bilingual local-first RSS/Atom and GitHub releases reader with explicit Android Share and scoped, on-device notification capture; Gmail/YouTube arrive only as selected-app notifications.",
+    "ar": "قارئ عربي وإنجليزي لخلاصات RSS وAtom وإصدارات GitHub، مع مشاركة أندرويد والتقاط إشعارات التطبيقات المختارة على الجهاز فقط. جيميل ويوتيوب عن طريق إشعارات التطبيقات فقط."
   },
   "status": "showcase",
   "portfolio": true,
@@ -53,8 +53,8 @@
       "ar": "Installable PWA experience with production-only shell caching, Android/iOS install guidance, and embedded-browser fallbacks."
     },
     {
-      "en": "Feature branch: Gmail label and YouTube subscription import via real Google OAuth and native token encryption.",
-      "ar": "فرع تطوير: استيراد تصنيفات جيميل واشتراكات يوتيوب عبر OAuth حقيقي مع تشفير الرموز."
+      "en": "Selected Android-app notifications persist locally in the Inbox with read, saved, done and archive states; no Gmail/YouTube account connector.",
+      "ar": "إشعارات تطبيقات أندرويد المختارة تُحفظ محليًا في الوارد بحالات القراءة والحفظ والإنهاء والأرشفة، بدون ربط حسابات جيميل أو يوتيوب."
     },
     {
       "en": "Paper & Ink editorial landing and workspace, clear Reading/Inbox navigation, accessible settings, sources, and native permission onboarding.",
@@ -69,8 +69,8 @@
       "ar": "وارد بحالات قراءة منفصلة عن الحفظ والإنهاء والأرشفة ومعاينات مصادر."
     },
     {
-      "en": "Google web login uses app-hosted Better Auth on al-rawi-rss.vercel.app with existing Neon user IDs and user-scoped manual RSS backup/restore. The guest reader and native source permissions remain separate. Full Google login and authenticated backup acceptance on the new flow remain unverified.",
-      "ar": "تسجيل Google للويب عبر Better Auth على نطاق الراوي مع الاحتفاظ بمعرّفات مستخدمي Neon والنسخ اليدوي لـRSS لكل حساب. القراءة كضيف وصلاحيات المصادر الأصلية منفصلة. اكتمال الدخول واختبار النسخ الموثّق على المسار الجديد يحتاجان إلى التحقق."
+      "en": "Google web login uses app-hosted Better Auth on al-rawi-rss.vercel.app with existing Neon user IDs and user-scoped manual RSS backup/restore. The guest reader and native notification access remains separate. Full Google login and authenticated backup acceptance on the new flow remain unverified.",
+      "ar": "تسجيل Google للويب عبر Better Auth على نطاق الراوي مع الاحتفاظ بمعرّفات مستخدمي Neon والنسخ اليدوي لـRSS لكل حساب. القراءة كضيف وصلاحية التقاط الإشعارات منفصلة. اكتمال الدخول واختبار النسخ الموثّق على المسار الجديد يحتاجان إلى التحقق."
     }
   ],
   "progress": {
@@ -79,20 +79,12 @@
   },
   "issues": [
     {
-      "en": "Android Google source request and callback defects repaired; two instrumentation tests pass on Android 16 with 16 KB pages. Gmail and YouTube reach Google, but real authorization is blocked because the configured Android client's custom URI scheme is disabled. See ANDROID_OAUTH_16KB_2026-11-14.md.",
-      "ar": "تم إصلاح بناء طلب ربط مصادر جوجل ورسالة الرجوع، ونجح اختباران على محاكي أندرويد ١٦ بصفحات ذاكرة ١٦ كيلوبايت. يصل جيميل ويوتيوب إلى جوجل، لكن التفويض الفعلي محجوب لأن إعداد عنوان الرجوع المخصص غير مفعّل لعميل أندرويد."
-    },
-    {
       "en": "The declared test command covers focused library tests; broader UI and device coverage remains limited.",
       "ar": "The declared test command covers focused library tests; broader UI and device coverage remains limited."
     },
     {
       "en": "No conventional test directory was detected.",
       "ar": "No conventional test directory was detected."
-    },
-    {
-      "en": "Android Share Sheet and native-source device tests remain deferred; web Google OAuth acceptance passed.",
-      "ar": "ما زالت اختبارات مشاركة أندرويد والمصدر الأصلي على الجهاز مؤجلة؛ وقد اجتاز OAuth للويب اختبارات القبول."
     },
     {
       "en": "Neon branch remains a draft: authenticated forged-user_id POST check pending; development-only braces audit chain remains affected. Android device testing is deferred. See NEON_REPAIR_REPORT_2026-10-16.md.",

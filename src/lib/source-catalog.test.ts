@@ -5,7 +5,7 @@ import { youtubeVideoId } from "./inbox-preview";
 
 test("catalog is extensible and describes real capabilities", () => {
   assert.ok(SOURCE_CATALOG.some((entry) => entry.id === "github-public" && entry.method === "feed"));
-  assert.ok(SOURCE_CATALOG.some((entry) => entry.id === "gmail" && !entry.worksOnWeb && entry.requiresAccount));
+  assert.ok(SOURCE_CATALOG.every((entry) => !entry.requiresAccount && entry.id !== "gmail" && entry.id !== "youtube"));
   assert.ok(SOURCE_CATALOG.some((entry) => entry.id === "shared" && !entry.requiresAccount));
 });
 

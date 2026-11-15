@@ -12,7 +12,6 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(SharedContentPlugin.class);
         registerPlugin(NotificationCapturePlugin.class);
-        registerPlugin(GoogleSourcesPlugin.class);
         super.onCreate(savedInstanceState);
         SharedContentPlugin.receiveIntent(this, getIntent());
         // Do not re-import the same share if Android recreates this Activity.

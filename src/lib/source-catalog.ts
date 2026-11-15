@@ -4,7 +4,7 @@ import type { InboxSource } from "./inbox-types";
  * Source capabilities are declared instead of inferring support from a platform name.
  * New providers must implement their own authorized connector before being marked connected.
  */
-export type SourceMethod = "feed" | "google-oauth" | "manual-share";
+export type SourceMethod = "feed" | "manual-share";
 export type SourceDefinition = {
   id: InboxSource | "github-public" | "podcast";
   method: SourceMethod;
@@ -17,8 +17,6 @@ export const SOURCE_CATALOG: readonly SourceDefinition[] = [
   { id: "rss", method: "feed", automaticWhileOpen: true, worksOnWeb: true, requiresAccount: false },
   { id: "github-public", method: "feed", automaticWhileOpen: true, worksOnWeb: true, requiresAccount: false },
   { id: "podcast", method: "feed", automaticWhileOpen: true, worksOnWeb: true, requiresAccount: false },
-  { id: "gmail", method: "google-oauth", automaticWhileOpen: true, worksOnWeb: false, requiresAccount: true },
-  { id: "youtube", method: "google-oauth", automaticWhileOpen: true, worksOnWeb: false, requiresAccount: true },
   { id: "shared", method: "manual-share", automaticWhileOpen: false, worksOnWeb: true, requiresAccount: false },
 ] as const;
 

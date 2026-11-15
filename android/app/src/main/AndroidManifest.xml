@@ -41,17 +41,6 @@
             </intent-filter>
         </service>
 
-        <!-- AppAuth receives the Google OAuth redirect in a dedicated Android activity. -->
-        <activity android:name="net.openid.appauth.RedirectUriReceiverActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="${appAuthRedirectScheme}" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".AuthResultActivity" android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

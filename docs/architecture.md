@@ -45,7 +45,7 @@ flowchart TD
 
 ## Android notification capture path
 
-`NotificationCaptureService.kt` filters every event using the owner-selected `alrawi_capture/packages_v1` SharedPreferences allowlist, then writes through `NotificationDb.kt` to private `notifications.db`, including while the WebView is closed. Dismissal does not remove records. `NotificationCapturePlugin.kt` exposes permission checks, per-app settings, the launchable-app list, queue listing, acknowledgements, and native events. `src/lib/native-capture.ts` imports to `src/lib/inbox-store.ts` (IndexedDB schema 3) and only acknowledges native queue rows after persistence. Already imported IDs cannot be reintroduced by notification reposts; saved/read/done/archive actions remain device-local. No captured content is sent to Neon, Vercel or any API. Existing Google source connectors and explicit Share flow remain separate.
+`NotificationCaptureService.kt` filters every event using the owner-selected `alrawi_capture/packages_v1` SharedPreferences allowlist, then writes through `NotificationDb.kt` to private `notifications.db`, including while the WebView is closed. Dismissal does not remove records. `NotificationCapturePlugin.kt` exposes permission checks, per-app settings, the launchable-app list, queue listing, acknowledgements, and native events. `src/lib/native-capture.ts` imports to `src/lib/inbox-store.ts` (IndexedDB schema 3) and only acknowledges native queue rows after persistence. Already imported IDs cannot be reintroduced by notification reposts; saved/read/done/archive actions remain device-local. No captured content is sent to Neon, Vercel or any API. The explicit Share flow and app-hosted web sign-in remain separate.
 
 ## External boundaries and controls
 
@@ -54,7 +54,7 @@ Google web authentication uses app-hosted Better Auth in `src/lib/auth/app.ts` a
 user UUIDs. The backup route validates the signed session through
 `src/lib/auth/server.ts` before using that user ID in every backup query. The
 Google callback is hosted on `al-rawi-rss.vercel.app`; the public reader and native
-Gmail/YouTube source permissions retain their existing boundaries.
+notification capture retain separate boundaries.
 
 - The app makes outbound requests only through the two same-origin route
   handlers for reader operations.
@@ -105,21 +105,19 @@ SharedContentPlugin receives user-initiated ACTION_SEND text/URL shares
 from the Android Sharesheet. A small local queue is only acknowledged after
 successful IndexedDB persistence, surviving WebView startup delays.
 
-Actual sources: public RSS/Atom feeds (including GitHub public releases),
-pasted links and notes, Android explicit Sharesheet, and optional Android
-Google OAuth connections to Gmail and YouTube. Google tokens use Android
-Keystore AES-GCM. The Gmail readonly scope is restricted and allows access to
-more than just the selected label, though the importer only fetches that
-label's recent messages. Gmail text bodies are fetched on-demand. YouTube
-video playback uses click-to-load privacy-enhanced embeds.
+Actual new sources: public RSS/Atom feeds (including GitHub public releases),
+pasted links and notes, Android explicit Sharesheet, and scoped on-device
+notification capture. Gmail and YouTube reach the Inbox only when notifications
+are posted by their selected Android apps. Legacy Gmail/YouTube items already in
+IndexedDB remain readable. No Android Google account connections or tokens are
+used. Existing YouTube video playback remains click-to-load.
 
 No generic listener can safely and permissionlessly capture WhatsApp or
 other apps' notifications. No cross-device sync or guaranteed background
-content polling is implemented. Only sources with actual authorized APIs
-should be marked connected.
+content polling is implemented. Native capture is selected by Android package and requires Notification Access, not account authorization.
 
 The Android Capacitor export temporarily moves Node API routes then
 restores them. Native RSS requests use the existing production backend;
 the browser uses same-origin Next.js API routes.
 
-See docs/revival-verification.md for OAuth, privacy and physical-device checks.
+See docs/revival-verification.md for privacy and physical-device checks.

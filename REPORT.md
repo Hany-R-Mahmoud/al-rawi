@@ -95,3 +95,48 @@ Next.js 16.4.2, React 19.2.4, Capacitor 8.5.3; existing Google/Auth and RSS boun
 ## 9. Screens and artifacts
 
 No screenshots saved to `docs/screens/`, because no browser or emulator was available; screenshots must contain synthetic notifications only. No APK was built, so `artifacts/al-rawi-full-test.apk` and its SHA-256 are unavailable. Do not treat GitHub text commits as a compiled Android package.
+
+
+---
+
+## Follow-up: remove native Google account connections (2026-11-15)
+
+**Implementation on `remove-google-connections`: done; local Android/web gate verification and APK generation deferred.** This follow-up supersedes earlier claims in this report that native Gmail/YouTube OAuth source connectors remain present. The separate Al-Rawi Better Auth web sign-in and manual RSS backup remain in place.
+
+| Item | Landed on feature branch | Verification/evidence |
+|---|---|---|
+| 1. Remove native Google account sources | YES | Removed `GoogleSourcesPlugin.kt`, `AuthResultActivity.kt`, `TokenVault.kt`, `GoogleAuthorizationTest.kt`, their registration and Android manifest activities; removed the native AppAuth dependency, client-ID Gradle fields, and stale APK build warning. Preserved notification listener, launcher `<queries>` block and Share plugin. Source diff reviewed; Android compilation **NOT CHECKED**. |
+| 2. Remove web account-source layer | YES | Removed `src/lib/native-sources.ts`, Sources connect/sync and Gmail label UI, Inbox sync polling, and native Gmail message fetching from detail previews; removed two catalog OAuth entries and the obsolete promotional cards. Preserved legacy `gmail`/`youtube` InboxSource, card rendering, local saved content, YouTube playback and existing status actions. Runtime render/triage **NOT CHECKED**. |
+| 3. Correct product documentation | YES | Updated README, architecture, privacy verification, portfolio EN/AR and retained the 2026-11-14 Android OAuth document with a prominent **SUPERSEDED** header. Existing web sign-in/Neon account claims are intentionally retained. Static review complete; full repo-wide historical document scan **NOT VERIFIED**. |
+| 4. Legacy capture table | YES | `NotificationDb.ensureSchema()` uses `CREATE TABLE/INDEX IF NOT EXISTS` in both `onCreate` and `onOpen`, no version bump, no destructive change. Added `existingVersionOneDatabaseGetsCaptureTableWithoutRemovingLegacyRows` to the existing instrumentation suite. Test **NOT RUN**. |
+| 5. Pending-update event | YES | `NotificationDb.save` returns `true` for existing `imported=0` updates (triggers `captureReceived` via the unchanged service), while imported rows return `false`. Updated dedupe test expects `true` on update and checks latest text. Test **NOT RUN**. |
+| 6. Android/web gates | NO — DEFERRED | No accessible Mac project checkout, Android SDK/ADB, or `Pixel_9_2_16_KB` emulator in this environment. `./gradlew connectedAndroidTest`, `npm test`, `npx tsc --noEmit`, `npm run lint`, and `npm run build` were **not run**. New passing totals are **unknown**. Historical auditor baseline was **27/27 JS tests, tsc 0, lint clean, build OK**, not a result for this follow-up. |
+| 7. APK | NO — DEFERRED | `npm run android:apk` was **not run**; no new `artifacts/al-rawi-full-test.apk` or SHA-256 is available. Owner's actual Gmail/YouTube notification and install-over-existing acceptance remain **handed over**, not passed. |
+
+### Tests changed and why
+
+- `src/lib/source-catalog.test.ts`: the one assertion that required a connected Gmail account provider was replaced with an assertion that the published source catalog has no account-backed Gmail/YouTube connectors. The test count is unchanged by this assertion replacement, but the suite was **not run**.
+- `src/lib/cloud-backup.test.ts`: **unchanged**; its synthetic pre-existing Gmail Inbox records still verify that RSS backup exports only RSS items.
+- `NotificationCaptureTest.kt`: updated the pre-import repost assertion and checked updated text; added exactly one legacy-version-1 database test (six test methods now declared, execution unverified).
+- `GoogleAuthorizationTest.kt`: removed with the retired native OAuth flow (its two historical Android tests no longer apply).
+
+### Security, compatibility and retained decisions
+
+- New Gmail and YouTube content comes **only from notifications posted by the selected installed apps** through Android Notification Access; neither app account is queried or linked.
+- Already imported Gmail and YouTube Inbox items stay on this device and can still be read, saved, marked done or archived. They are never refreshed from Gmail APIs.
+- **Tokens previously stored by `TokenVault` are unreachable Android Keystore orphans; no migration or wipe.**
+- The existing app-hosted web Google sign-in and manual RSS backup are unchanged. Captured notifications never reach Neon, Vercel or other servers.
+- Historical design/Neon documents and the earlier sections of this append-only report may still mention retired source-class names as past implementation evidence. These are historical references, not active dependencies; strict whole-repository zero-string search excluding only the one explicitly superseded document is therefore **not claimed**.
+- The previous production Vercel deployment checked before this change was READY, commit `22051f3869228bf2f9e5842c8fae08a39fc52c93`, ID `dpl_GpYzQQ4jH1jsQb3p1YZr9vYRtARS`, alias `https://al-rawi-rss.vercel.app`. No manual Vercel deployment is part of this follow-up.
+
+### Deferred blockers and exact unlocks
+
+1. **No owner's Mac local clone or Android AVD in this executor.** Evidence: container root is `/`; only prior handoff scripts appear under `/mnt/data`; `adb` is not installed, and terminal `git ls-remote` fails with `Could not resolve host: github.com`. Authenticated GitHub source editing works through the connected API. **Unlock:** on the owner's Mac, fetch the new remote branch, install dependencies from the unchanged lockfile, start `Pixel_9_2_16_KB`, then run `cd android && ./gradlew connectedAndroidTest`, `npm test`, `npx tsc --noEmit`, `npm run lint`, and `npm run build`. Fix any test failure at the source and report exact counts.
+2. **No test APK or checksum.** Evidence: Android build not executable in this container and no compiled APK was created. **Unlock:** on the same Mac, run `npm run android:apk`, verify `artifacts/al-rawi-full-test.apk`, and run `shasum -a 256 artifacts/al-rawi-full-test.apk`. Owner installs it using `adb install -r` or approved sideload path without Play Protect evasion.
+3. **No physical owner-device acceptance.** Evidence: no access to owner phone or real personal notifications. **Unlock:** owner tests Gmail/YouTube notifications after shade dismissal and install-over-current behavior; reports results without disclosing notification contents.
+4. **Historical text references prevent a literal zero-string search of all repository documents.** Evidence: older append-only report sections and other historical project notes describe now-removed classes. **Unlock:** if strict text absence in archived docs is required, authorize a separate history-document cleanup while preserving audit provenance. Active runtime and Gradle references were removed.
+5. **Native/web runtime gates not attested before merge.** Evidence: no local builder or emulator. The user explicitly requested the changes and subsequent remote merge; a GitHub merge does not imply passing the above gates. **Unlock:** run and capture the exact gate output on the Mac and amend the follow-up report in a later reviewed PR rather than silently claiming success.
+
+### Not checked
+
+No Android compilation, real notification delivery, permission changes, queue import, web browser run, full test execution, APK build/signature, SHA-256, or physical-device verification occurred in this execution environment. An authenticated GitHub source-file review is **not** a substitute for these checks.

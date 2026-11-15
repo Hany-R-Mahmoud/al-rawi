@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { AppRouteLink } from "@/components/app-route-link";
-import { ArrowDown, ArrowRight, ArrowUpRight, BookOpenText, BookmarkCheck, Check, Inbox, Languages, Mail, Moon, Rss, Share2, ShieldCheck, Smartphone, Sun, Tv } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, BookOpenText, BookmarkCheck, Check, Inbox, Languages, Moon, Rss, Share2, ShieldCheck, Smartphone, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { BrandLogo } from "@/components/brand-logo";
@@ -12,8 +12,6 @@ import StandaloneVisitorCounter from "@/components/StandaloneVisitorCounter";
 const sources = [
   { icon: Rss, name: "revRssName", detail: "revRssDetail", availability: "revAllPlatforms" },
   { icon: Share2, name: "revNotificationsName", detail: "revNotificationsDetail", availability: "revAllPlatforms" },
-  { icon: Mail, name: "revGmailName", detail: "revGmailDetail", availability: "revAndroidOnly" },
-  { icon: Tv, name: "revYoutubeName", detail: "revYoutubeDetail", availability: "revAndroidOnly" },
 ] as const;
 
 const steps = [
@@ -100,7 +98,7 @@ export default function LandingPage() {
             <div><h2 className={editorial + " mt-4 max-w-lg text-4xl font-normal sm:text-5xl"}>{t("revSourcesTitle")}</h2></div>
             <p className="max-w-xl self-end text-sm leading-7 text-ink-subtle sm:text-base">{t("revSourcesDescription")}</p>
           </div>
-          <div className="grid border-t border-border sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid border-t border-border sm:grid-cols-2">
             {sources.map((item, index) => {
               const Icon = item.icon;
               return <article key={item.name} className={"border-b border-border px-0 py-7 sm:px-6 lg:border-b-0 " + (index < 3 ? "lg:border-e " : "") + (index % 2 === 0 ? "sm:border-e " : "") + (index === 0 ? "sm:ps-0 " : "") + (index === 3 ? "lg:pe-0" : "")}>

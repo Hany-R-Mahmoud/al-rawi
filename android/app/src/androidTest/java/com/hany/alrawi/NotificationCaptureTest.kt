@@ -65,17 +65,38 @@ class NotificationCaptureTest {
         NotificationDb(isolated, "notification_capture_test.db").use { db ->
             assertTrue(db.save(isolated, "com.google.android.youtube", "stable-key", 0,
                 "YouTube", "Old", "Version 1", 11))
-            assertFalse(db.save(isolated, "com.google.android.youtube", "stable-key", 0,
+            assertTrue(db.save(isolated, "com.google.android.youtube", "stable-key", 0,
                 "YouTube", "New", "Version 2", 20))
             assertEquals(1, db.list(500).length())
             val id = CaptureRules.id("com.google.android.youtube", "stable-key")
             assertEquals("New", db.list(500).getJSONObject(0).getString("title"))
+            assertEquals("Version 2", db.list(500).getJSONObject(0).getString("text"))
             assertEquals(11, db.list(500).getJSONObject(0).getLong("postedAt"))
             assertEquals(1, db.ack(listOf("not-a-notification")))
             assertEquals(0, db.ack(listOf(id)))
             assertFalse(db.save(isolated, "com.google.android.youtube", "stable-key", 0,
                 "YouTube", "Reposted", "Version 3", 21))
             assertEquals(0, db.list(500).length())
+        }
+    }
+
+    @Test fun existingVersionOneDatabaseGetsCaptureTableWithoutRemovingLegacyRows() {
+        reset()
+        // Old PR #1 used the same database filename and helper version but a different table.
+        base.openOrCreateDatabase("notification_capture_test.db", Context.MODE_PRIVATE, null).use { old ->
+            old.execSQL("CREATE TABLE notifications (legacy_id TEXT PRIMARY KEY)")
+            old.execSQL("INSERT INTO notifications(legacy_id) VALUES ('kept')")
+            old.version = 1
+        }
+        NotificationDb(isolated, "notification_capture_test.db").use { db ->
+            assertTrue(db.save(isolated, "com.google.android.gm", "legacy-case", 0,
+                "Gmail", "Synthetic title", "Synthetic text", 123L))
+            assertEquals(1, db.list(500).length())
+            db.readableDatabase.rawQuery("SELECT legacy_id FROM notifications", null).use { legacy ->
+                assertTrue(legacy.moveToFirst())
+                assertEquals("kept", legacy.getString(0))
+                assertEquals(1, legacy.count)
+            }
         }
     }
 

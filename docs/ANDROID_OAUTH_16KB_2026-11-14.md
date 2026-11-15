@@ -1,3 +1,5 @@
+> **SUPERSEDED — 2026-11-15:** The owner removed native Gmail/YouTube account connections. This file is historical evidence only; its OAuth repair is no longer part of Al-Rawi.
+
 # Android Google source connection repair — 14 November 2026
 
 ## Result

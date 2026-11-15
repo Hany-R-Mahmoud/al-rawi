@@ -62,13 +62,20 @@ object CaptureRules {
 }
 
 class NotificationDb(context: Context, databaseName: String = "notifications.db") : SQLiteOpenHelper(context, databaseName, null, 1) {
-    override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("""CREATE TABLE captured_notifications (
+    private fun ensureSchema(db: SQLiteDatabase) {
+        db.execSQL("""CREATE TABLE IF NOT EXISTS captured_notifications (
             id TEXT PRIMARY KEY, package_name TEXT NOT NULL, app_label TEXT NOT NULL,
             title TEXT NOT NULL, text TEXT NOT NULL, url TEXT NOT NULL DEFAULT '',
             posted_at INTEGER NOT NULL, imported INTEGER NOT NULL DEFAULT 0)""")
-        db.execSQL("CREATE INDEX idx_captured_posted ON captured_notifications(posted_at)")
-        db.execSQL("CREATE INDEX idx_captured_imported ON captured_notifications(imported, posted_at)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_captured_posted ON captured_notifications(posted_at)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_captured_imported ON captured_notifications(imported, posted_at)")
+    }
+
+    override fun onCreate(db: SQLiteDatabase) = ensureSchema(db)
+
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        ensureSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         // Schema version 1 is normative; do not destroy captured data on upgrade.
@@ -109,7 +116,7 @@ class NotificationDb(context: Context, databaseName: String = "notifications.db"
                 trim(db, 1, 500)
             }
             db.setTransactionSuccessful()
-            return existing == null
+            return true
         } finally { db.endTransaction() }
     }
 
