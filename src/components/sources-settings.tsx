@@ -82,7 +82,8 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
     let dead = false;
     void onSourcesChanged(() => { void refresh(); void refreshCapture(); }).then((cleanup) => { if (dead) void cleanup(); else dispose = cleanup; }).catch(() => {});
     document.addEventListener("visibilitychange", visible);
-    return () => { dead = true; void dispose?.(); document.removeEventListener("visibilitychange", visible); };
+    window.addEventListener("focus", refreshCapture);
+    return () => { dead = true; void dispose?.(); document.removeEventListener("visibilitychange", visible); window.removeEventListener("focus", refreshCapture); };
   }, [refresh, refreshCapture]);
 
   const connect = async (source: GoogleSource) => {
