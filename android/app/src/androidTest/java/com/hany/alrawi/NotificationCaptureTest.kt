@@ -9,7 +9,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class NotificationCaptureTest {
@@ -17,17 +16,12 @@ class NotificationCaptureTest {
 
     /** Redirect both production storage boundaries into a dedicated disposable test namespace. */
     private val isolated = object : ContextWrapper(base) {
-        override fun getDatabasePath(name: String): File {
-            val dir = File(base.cacheDir, "notification-capture-test")
-            dir.mkdirs()
-            return File(dir, name)
-        }
         override fun getSharedPreferences(name: String, mode: Int): SharedPreferences =
             base.getSharedPreferences("notification_capture_test_$name", mode)
     }
 
     private fun reset() {
-        isolated.getDatabasePath("notifications.db").delete()
+        base.deleteDatabase("notification_capture_test.db")
         CaptureRules.setPackages(isolated, listOf("com.google.android.youtube", "com.google.android.gm"))
     }
 
@@ -47,7 +41,7 @@ class NotificationCaptureTest {
 
     @Test fun skippingOngoingSummarySelfAndBlank() {
         reset()
-        NotificationDb(isolated).use { db ->
+        NotificationDb(isolated, "notification_capture_test.db").use { db ->
             assertFalse(db.save(isolated, "com.example.other", "1", 0, "Other", "Title", "Text", 1))
             assertFalse(db.save(isolated, "com.hany.alrawi", "2", 0, "Self", "Title", "Text", 1))
             assertFalse(db.save(isolated, "com.google.android.gm", "3", Notification.FLAG_ONGOING_EVENT, "Gmail", "Title", "Text", 1))
