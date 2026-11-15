@@ -96,12 +96,14 @@ class NotificationCaptureTest {
             assertEquals(4, first.getLong("postedAt"))
             val ids = db.list(500)
             db.ack((0 until ids.length()).map { ids.getJSONObject(it).getString("id") })
-            // The native store retains at most 500 imported copies.
+            val rest = db.list(500)
+            db.ack((0 until rest.length()).map { rest.getJSONObject(it).getString("id") })
+            // The native store retains at most 500 imported copies even after 1000 acknowledgements.
             val count = db.readableDatabase.rawQuery(
                 "SELECT COUNT(*) FROM captured_notifications WHERE imported = 1", null
             ).use { it.moveToFirst(); it.getInt(0) }
             assertEquals(500, count)
-            assertEquals(500, db.list(500).length())
+            assertEquals(0, db.list(500).length())
         }
     }
 }
