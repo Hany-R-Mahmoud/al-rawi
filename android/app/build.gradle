@@ -1,11 +1,6 @@
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'com.android.application'
 
-// Public (non-secret) OAuth Android client ID, supplied ONLY at build time.
-def rawGoogleClientId = System.getenv('ALRAWI_GOOGLE_ANDROID_CLIENT_ID') ?: ''
-def googleClientValid = rawGoogleClientId ==~ /[A-Za-z0-9-]+[.]apps[.]googleusercontent[.]com/
-def googleScheme = googleClientValid ? 'com.googleusercontent.apps.' + rawGoogleClientId.split('[.]')[0] : 'com.hany.alrawi.unconfigured'
-
 
 android {
     namespace = "com.hany.alrawi"
@@ -16,8 +11,6 @@ android {
     }
     buildFeatures { buildConfig = true }
     defaultConfig {
-        manifestPlaceholders = [appAuthRedirectScheme: googleScheme]
-        buildConfigField 'String', 'GOOGLE_ANDROID_CLIENT_ID', '"' + (googleClientValid ? rawGoogleClientId : '') + '"'
         applicationId "com.hany.alrawi"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -45,7 +38,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.openid:appauth:0.11.1'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
