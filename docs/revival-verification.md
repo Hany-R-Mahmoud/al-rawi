@@ -1,6 +1,6 @@
 # Al-Rawi Content Hub: privacy, build and device acceptance
 
-Al-Rawi is a privacy-first Content Hub with optional, explicitly scoped Android notification capture. Device sharing and real Google account acceptance MUST be tested before shipping. A successful APK build does not prove Play Protect approval or working OAuth. A successful APK build is not proof of Play Protect approval or working OAuth.
+Al-Rawi is a privacy-first Content Hub with optional, explicitly scoped Android notification capture. Device sharing and real Google account acceptance MUST be tested before shipping. A successful APK build does not prove Play Protect approval or working OAuth.
 
 ## What users get
 
@@ -62,9 +62,9 @@ Do not use a web client secret. The debug APK is not a Play Store release APK.
 
 ## Physical phone acceptance checklist (pending)
 
-- [ ] Inspect merged APK manifest: no notification listener service or BIND_NOTIFICATION_LISTENER_SERVICE permission.
+- [ ] Inspect merged APK manifest: scoped NotificationCaptureService declared with BIND_NOTIFICATION_LISTENER_SERVICE, enabled only after Android permission grant.
 - [ ] Install the new APK WITHOUT disabling Play Protect; report exact warning if any remains.
-- [ ] Upgrade from the previous version and verify no Notification Access prompt or captured notifications remain.
+- [ ] Upgrade over the existing test APK; verify the app retains captured items, shows scoped onboarding when needed, and does not delete notifications.db.
 - [ ] Share a URL from Chrome/GitHub/YouTube via Share -> Al-Rawi, both cold and warm app starts; verify it persists after closing/reopening.
 - [ ] Test repeated shares, shared text, and failure/retry before native queue ACK.
 - [ ] Paste links/notes in Web and Android; confirm local data is searchable and saved.
@@ -72,7 +72,7 @@ Do not use a web client secret. The debug APK is not a Play Store release APK.
 - [ ] Open full RSS article where available; verify fallback preview and Open Original when extraction fails.
 - [ ] With configured real Google accounts, connect Gmail and YouTube, select a Gmail label, refresh, read an email, watch a video after explicit playback, and disconnect.
 - [ ] Check EN/AR, RTL, mobile, desktop, theme, OPML, Reader and PWA behavior.
-- [ ] Verify no device-wide notifications are captured or stored.
+- [ ] Verify only enabled app packages are stored; exclude ongoing/group summaries and confirm shade dismissal survives.
 
 ## Android native page routing regression (corrected after PR #4 initial APK)
 
