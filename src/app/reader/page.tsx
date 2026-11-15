@@ -11,6 +11,7 @@ import { WorkspaceHeader } from "@/components/workspace-header";
 import type { SettingsSection } from "@/components/settings-dialog";
 import { upsertInboxItems, rssInboxItems, setInboxRead, getInboxItem } from "@/lib/inbox-store";
 import { importPendingShares, listenForShares } from "@/lib/native-shares";
+import { importPendingCaptures, listenForCaptures } from "@/lib/native-capture";
 import { FeedList } from "@/components/feed-list";
 import { ReaderPane } from "@/components/reader-pane";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -168,9 +169,10 @@ export default function Home() {
   useEffect(() => {
     let disposed = false;
     let remove: (() => Promise<void>) | undefined;
+    let removeCapture: (() => Promise<void>) | undefined;
     const drain = async () => {
       try {
-        const received = await importPendingShares();
+        const received = (await importPendingShares()) + (await importPendingCaptures());
         if (!disposed && received > 0) setShowInbox(true);
       } catch { /* Share remains in native queue and will retry on next app start. */ }
     };
@@ -178,12 +180,17 @@ export default function Home() {
       if (disposed) void cleanup();
       else remove = cleanup;
     }).catch(() => {});
+    void listenForCaptures(() => void drain()).then((cleanup) => {
+      if (disposed) void cleanup();
+      else removeCapture = cleanup;
+    }).catch(() => {});
     void drain();
     const onVisible = () => { if (document.visibilityState === "visible") void drain(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       disposed = true;
       void remove?.();
+      void removeCapture?.();
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
