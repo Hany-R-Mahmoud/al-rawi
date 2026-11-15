@@ -1,6 +1,5 @@
 import type { InboxItem } from "./inbox-types";
 import { apiUrl } from "./api-base";
-import { gmailMessageText } from "./native-sources";
 
 export type InboxPreview =
   | { kind: "html"; content: string; direction?: string; language?: string }
@@ -25,8 +24,7 @@ export async function loadInboxPreview(item: InboxItem): Promise<InboxPreview> {
     if (id) return { kind: "video", videoId: id };
   }
   if (item.source === "gmail") {
-    const body = await gmailMessageText(item.id.slice("gmail:".length));
-    return { kind: "text", content: body || item.text };
+    return { kind: "text", content: item.text };
   }
   if ((item.source === "rss" || item.source === "shared") && item.url) {
     try {
