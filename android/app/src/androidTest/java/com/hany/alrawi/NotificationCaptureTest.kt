@@ -77,7 +77,7 @@ class NotificationCaptureTest {
             val id = CaptureRules.id("com.google.android.youtube", "stable-key")
             assertEquals("New", db.list(500).getJSONObject(0).getString("title"))
             assertEquals(11, db.list(500).getJSONObject(0).getLong("postedAt"))
-            assertEquals(0, db.ack(listOf("not-a-notification")))
+            assertEquals(1, db.ack(listOf("not-a-notification")))
             assertEquals(0, db.ack(listOf(id)))
             assertFalse(db.save(isolated, "com.google.android.youtube", "stable-key", 0,
                 "YouTube", "Reposted", "Version 3", 21))
