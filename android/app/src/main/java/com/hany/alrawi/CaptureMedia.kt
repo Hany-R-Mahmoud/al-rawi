@@ -29,7 +29,7 @@ object CaptureMedia {
         if (picture != null) encode(picture, "picture")?.let { return it }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val pictureIcon = try { extras.getParcelable(Notification.EXTRA_PICTURE_ICON, Icon::class.java) } catch (_: Exception) { null }
+            val pictureIcon = try { extras.getParcelable<Icon>(Notification.EXTRA_PICTURE_ICON) } catch (_: Exception) { null }
             iconBitmap(context, pictureIcon)?.let { encode(it, "picture") }?.let { return it }
         }
 
