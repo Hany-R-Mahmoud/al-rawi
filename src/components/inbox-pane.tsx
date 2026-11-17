@@ -83,13 +83,16 @@ export function InboxPane({ view, onViewChange, onManageSources }: { view: Inbox
         refresh();
       }
     };
+    const captureFailed = () => setError(t("inboxError"));
     window.addEventListener("al-rawi:inbox-changed", refresh);
+    window.addEventListener("al-rawi:capture-import-error", captureFailed);
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       window.removeEventListener("al-rawi:inbox-changed", refresh);
+      window.removeEventListener("al-rawi:capture-import-error", captureFailed);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [refresh]);
+  }, [refresh, t]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { setDebounced(search); setPage(1); }, 200);
