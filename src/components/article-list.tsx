@@ -42,7 +42,7 @@ export function ArticleList({ articles, selectedArticleId, onSelectArticle, onTo
               {article.summary && <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-ink-faint" dir={article.direction}>{article.summary}</p>}
             </button>
             <button type="button" aria-label={article.isRead ? t("markUnread") : t("markRead")} title={article.isRead ? t("markUnread") : t("markRead")}
-              onClick={() => onToggleRead(article.id)} className="me-2 mt-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-faint transition hover:bg-paper-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent2">
+              onClick={() => onToggleRead(article.id)} className="me-2 mt-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-ink-faint transition hover:bg-paper-raised hover:text-ink focus-visible:outline-2 focus-visible:outline-accent2">
               {article.isRead ? <MailOpen className="h-4 w-4" aria-hidden /> : <Mail className="h-4 w-4" aria-hidden />}
             </button>
           </article>
