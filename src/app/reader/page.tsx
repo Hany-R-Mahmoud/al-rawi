@@ -146,7 +146,6 @@ export default function Home() {
       setArticles((current) => {
         return [...current.filter((article) => !successes.some((entry) => entry.source.id === article.feedId)), ...hydrated].sort(sortArticles);
       });
-      setSelectedArticleId((current) => current && nextArticles.some((article) => article.id === current) ? current : null);
       setFeeds((current) => current.map((feed) => {
         const result = successes.find((item) => item.result.feed.id === feed.id);
         const failure = failures.find((item) => item.source.id === feed.id);
