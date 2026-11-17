@@ -53,17 +53,17 @@ export default function SignInPage() {
         ) : !isPending && session?.user ? (
           <div className="mt-7 space-y-4">
             <p className="text-sm">{ar ? "مسجل الدخول:" : "Signed in as:"} <strong>{session.user.email}</strong></p>
-            <Link href="/reader" className="inline-flex min-h-11 items-center rounded-lg bg-ink px-5 text-sm font-semibold text-paper">{ar ? "افتح مساحة القراءة" : "Open reading space"}</Link>
+            <Link href="/reader" className="inline-flex min-h-11 items-center rounded-lg bg-ink px-5 text-sm font-semibold text-paper">{ar ? "افتح الوارد" : "Open Inbox"}</Link>
           </div>
         ) : (
-          <button type="button" disabled={pending || isPending} onClick={() => void signIn()}
+          <button type="button" disabled={pending || isPending} aria-busy={pending || isPending} onClick={() => void signIn()}
             className="mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-ink px-5 text-sm font-semibold text-paper transition hover:opacity-90 disabled:opacity-60">
             {pending || isPending ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
             {ar ? "المتابعة باستخدام Google" : "Continue with Google"}
           </button>
         )}
         {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
-        <Link href="/reader" className="mt-7 inline-flex min-h-10 items-center gap-2 text-sm text-ink-subtle hover:text-ink"><ArrowLeft className="h-4 w-4" aria-hidden="true"/>{ar ? "المتابعة من غير حساب" : "Continue as guest"}</Link>
+        <Link href="/reader" className="mt-7 inline-flex min-h-10 items-center gap-2 text-sm text-ink-subtle hover:text-ink"><ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden="true"/>{ar ? "المتابعة من غير حساب" : "Continue as guest"}</Link>
       </section>
     </main>
   );
