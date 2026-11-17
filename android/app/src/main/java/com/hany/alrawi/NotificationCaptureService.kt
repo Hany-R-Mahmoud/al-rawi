@@ -32,9 +32,10 @@ class NotificationCaptureService : NotificationListenerService() {
                 val label = try {
                     packageManager.getApplicationLabel(packageManager.getApplicationInfo(sbn.packageName, 0)).toString()
                 } catch (_: Exception) { sbn.packageName }
+                val media = CaptureMedia.from(applicationContext, sbn.notification, sbn.packageName)
                 if (NotificationDb(applicationContext).use { db ->
                     db.save(applicationContext, sbn.packageName, sbn.key, sbn.notification.flags,
-                        label, title, body, sbn.postTime)
+                        label, title, body, sbn.postTime, media)
                 }) NotificationCapturePlugin.publish()
             } catch (_: Exception) {
                 // Never crash the system listener and never log content or an exception message.

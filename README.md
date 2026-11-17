@@ -1,8 +1,15 @@
 # Al-Rawi
 
-Al-Rawi is a bilingual, local-first RSS reader. Feed subscriptions, categories,
-language, and reading preferences stay in the browser; fresh articles and
-extracted article HTML are held in memory for the current session.
+Al-Rawi is a bilingual, local-first **Android notification Inbox** with optional
+links, notes, explicit Android sharing and secondary RSS reading. On Android,
+the owner chooses the apps whose *new, eligible* notifications are captured.
+Notification text and bounded pictures stay in the phone's private SQLite queue
+and IndexedDB; dismissal from the Android shade does not delete saved items.
+No Google account connection is involved in notification capture. The web/PWA
+cannot access other apps' notifications, but can save links and read RSS feeds.
+
+Reading subscriptions, categories, language, and preferences remain local-first.
+Fresh RSS articles and extracted HTML are held in memory for the session.
 
 ## Quick start
 
@@ -28,8 +35,10 @@ The test script covers focused library tests; there is no conventional test dire
 
 ## What is implemented
 
-- Landing page at `/` and the reader workspace at `/reader`.
+- Landing page at `/` and the **Inbox-first** workspace at `/reader`. Mobile and desktop navigation: Inbox, Saved, Reading, Settings.
 - English and Arabic UI with RTL document direction and article direction detection.
+- Android-only user-selected notification capture, with bounded on-device pictures/icons and search/read/save/done/archive in Inbox.
+- Android Share plus manual links/notes in Inbox; no notifications uploaded to cloud.
 - Starter RSS catalog, manual feed URLs, categories, search, refresh, and delete.
 - OPML import/export from Settings.
 - Same-origin server routes for public RSS fetching and article extraction.
@@ -42,16 +51,15 @@ The test script covers focused library tests; there is no conventional test dire
   install guidance, dismissal recovery, and embedded-browser fallbacks.
 
 Earlier versions of the app had no account system, database, environment-variable
-contract, cron worker, or server-side feed store. The optional web account and
-manual RSS backup integration is now on `main`, with Google OAuth hosted by the app.
+contract, cron worker, or server-side feed store. The optional Al-Rawi web account and
+manual **RSS-only** backup integration is on `main`, with Google OAuth hosted by the app. Captured notifications and pictures are never included in RSS backup.
 The older implementation brief in
 [`064-rss-reader-web.md`](064-rss-reader-web.md) describes capabilities that are
-not present in the current source, including a read-later queue and IndexedDB
-offline cache.
+not part of the current RSS architecture, including a separate article read-later queue and an IndexedDB RSS offline cache. The Inbox has its own Saved filter.
 
-## Content Hub: optional Android notification capture
+## Inbox: Android notification capture
 
-The Android test APK can retain notifications from owner-chosen apps after they are cleared from the shade. YouTube and Gmail are selected by default; Android Notification Access must be granted explicitly and apps can be switched on or off in Sources. The native SQLite queue survives a closed WebView and imports into the same IndexedDB Inbox on app open; its saved, done, read and archive controls are unchanged. Notification content stays on-device and is not logged or uploaded. Web/PWA never requests Android notification access. Explicit Share → Al-Rawi and RSS fetching remain separate.
+The Android test APK can retain notifications from owner-chosen apps after they are cleared from the shade. YouTube and Gmail are selected by default; Android Notification Access must be granted explicitly and apps can be switched on or off in Settings → Captured apps. The native SQLite queue survives a closed WebView and imports into the same IndexedDB Inbox on app open; its saved, done, read and archive controls are unchanged. Notification content stays on-device and is not logged or uploaded. Web/PWA never requests Android notification access. Explicit Share → Al-Rawi and RSS fetching remain separate.
 
 ## Privacy and freshness
 

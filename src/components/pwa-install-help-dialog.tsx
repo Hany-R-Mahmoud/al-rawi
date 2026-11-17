@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function PwaInstallHelpDialog() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { helpOpen, closeHelp, currentUrl, externalBrowserUrl, isIOS, isLikelyWebView, confirmInstalled } = usePwa();
   const [copied, setCopied] = useState(false);
 
@@ -27,6 +27,7 @@ export function PwaInstallHelpDialog() {
           <DialogDescription>{t("installHelpDescription")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          <p className="rounded-md border border-border bg-muted/30 p-3 text-sm leading-6 text-ink-subtle">{language === "en" ? "This installs the web reader. A browser/PWA cannot capture notifications from other Android apps; only the native Android app can, with permission." : "التثبيت ده للويب. نسخة الـPWA ما تقدرش تلتقط إشعارات تطبيقات أندرويد التانية؛ ده متاح في تطبيق أندرويد الأصلي بإذنك."}</p>
           {isIOS ? (
             <ol className="space-y-2 text-sm leading-6 text-ink-subtle">
               <li><span className="me-2 font-mono text-xs text-accent2">01</span>{t("iosInstallStepOne")}</li>

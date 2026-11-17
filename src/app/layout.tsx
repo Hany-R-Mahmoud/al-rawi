@@ -51,14 +51,14 @@ const socialImage = {
   type: "image/png",
   width: 1200,
   height: 630,
-  alt: "Al-Rawi — RSS reading and a quieter inbox",
+  alt: "Al-Rawi — a private Inbox for your notifications",
 };
 
 export const metadata: Metadata = {
   metadataBase,
   title: "Al-Rawi",
   description:
-    "Al-Rawi is a calm bilingual RSS reader and local-first inbox. On Android, collect app notifications, Gmail newsletters and YouTube subscriptions.",
+    "Al-Rawi saves eligible notifications from Android apps you choose in a private local Inbox. Save links and notes, organize what matters, and follow RSS feeds in Reading.",
   alternates: { canonical: "/" },
   applicationName: "Al-Rawi",
   manifest: "/manifest.json",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     url: "/",
     title: "Al-Rawi",
     description:
-      "Al-Rawi is a calm bilingual RSS reader and local-first inbox. On Android, collect app notifications, Gmail newsletters and YouTube subscriptions.",
+      "Al-Rawi saves eligible notifications from Android apps you choose in a private local Inbox. Save links and notes, organize what matters, and follow RSS feeds in Reading.",
     siteName: "Al-Rawi",
     images: [socialImage],
   },
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Al-Rawi",
     description:
-      "Al-Rawi is a calm bilingual RSS reader and local-first inbox. On Android, collect app notifications, Gmail newsletters and YouTube subscriptions.",
+      "Al-Rawi saves eligible notifications from Android apps you choose in a private local Inbox. Save links and notes, organize what matters, and follow RSS feeds in Reading.",
     images: [socialImage],
   },
   appleWebApp: {

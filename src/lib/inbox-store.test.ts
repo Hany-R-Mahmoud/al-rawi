@@ -123,3 +123,44 @@ test("user-selected share can be deleted, RSS pagination remains deterministic",
   assert.equal(second.items.length, 62);
   assert.equal(second.hasMore, false);
 });
+
+test("notification picture survives round-trip and repost without losing state", async () => {
+  const id = "notification:picture-fixture";
+  const image = { kind: "picture" as const, dataUrl: "data:image/jpeg;base64,YWJjZA==" };
+  await upsertInboxItems([item(id, { source: "notification", media: image, title: "Old", status: "new" })]);
+  await changeInboxStatus(id, "saved");
+  await setInboxRead(id, true);
+  const before = await getInboxItem(id);
+  assert.deepEqual(before?.media, image);
+  await upsertInboxItems([item(id, { source: "notification", title: "Updated", receivedAt: now + 10000, media: {
+    kind: "largeIcon", dataUrl: "data:image/png;base64,YWJjZA=="
+  } })]);
+  const after = await getInboxItem(id);
+  assert.equal(after?.status, "saved");
+  assert.equal(after?.readAt, before?.readAt);
+  assert.equal(after?.receivedAt, before?.receivedAt);
+  assert.equal(after?.media?.kind, "largeIcon");
+  assert.equal((await listInbox("saved", "updated")).items.some((entry) => entry.id === id), true);
+  await upsertInboxItems([item(id, { source: "notification", title: "Third", media: undefined })]);
+  assert.equal((await getInboxItem(id))?.media?.kind, "largeIcon");
+  await upsertInboxItems([item(id, { source: "notification", title: "Quota retry" })], { dropMedia: true });
+  assert.equal((await getInboxItem(id))?.media, undefined);
+  await deleteInboxItem(id);
+});
+
+test("cursor pagination stays deterministic when timestamps tie across media items", async () => {
+  const prefix = "notification:tie:";
+  await upsertInboxItems(Array.from({ length: 55 }, (_, index) => item(prefix + String(index).padStart(2, "0"), {
+    source: "notification",
+    receivedAt: now + 99999999,
+    media: index % 2 ? { kind: "appIcon", dataUrl: "data:image/png;base64,YQ==" } : undefined,
+  })));
+  const first = await listInbox("all", "tie", 1);
+  const second = await listInbox("all", "tie", 2);
+  assert.equal(first.items.length, 50);
+  assert.equal(first.hasMore, true);
+  assert.equal(second.items.length, 55);
+  assert.equal(second.hasMore, false);
+  assert.deepEqual(second.items.map((entry) => entry.id), [...second.items.map((entry) => entry.id)].sort());
+  await Promise.all(second.items.map((entry) => deleteInboxItem(entry.id)));
+});

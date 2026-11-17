@@ -140,3 +140,85 @@ No screenshots saved to `docs/screens/`, because no browser or emulator was avai
 ### Not checked
 
 No Android compilation, real notification delivery, permission changes, queue import, web browser run, full test execution, APK build/signature, SHA-256, or physical-device verification occurred in this execution environment. An authenticated GitHub source-file review is **not** a substitute for these checks.
+
+
+---
+
+# Al-Rawi — Notification-first refactor execution report (2026-11-17)
+
+**Candidate:** `fix-inbox-scroll-ux-thumbnails`, based on `main@a107a3b7dd9f2507dc29cafaef004d162d4d6132`.
+**Release state:** feature branch only; intentionally **not merged or deployed**. GitHub connector confirmed write access and Vercel project configuration; `vercel.json` remains `{"git":{"deploymentEnabled":{"*":false,"main":true}}}`. No Vercel or GitHub workflow initiated.
+**Evidence legend:** SOURCE = changes checked in connected GitHub; OWNER = user-provided POCO X5 Pro observation; LIVE = earlier live production browser review; BLOCKED = not executable in this tool runtime.
+
+## 1. Delivered source changes, by implementation phase
+
+| Phase | Implementation on branch | Evidence / limitation |
+|---|---|---|
+| P0 — preflight | Read existing main, native listener/database/inbox, settings, routing, design and docs. Reused existing feature branch name. Retained main-only deployment policy. | SOURCE. No existing open PR. |
+| P1 — Inbox scroll | Bounded the root workspace to `h-[100dvh]` with `overflow-hidden` at **all** breakpoints; list and Reading panes use `min-h-0` and own scroll; mobile list end padding clears bottom nav. | SOURCE, `src/app/reader/page.tsx`, `inbox-pane.tsx`, `reader-pane.tsx`; **mobile touch reproduction and final scroll measurements BLOCKED**. |
+| P2 — navigation | Inbox-first on Android and web CTA. Saved is the same Inbox filtered by `status=saved`; four tab bar destinations Inbox/Saved/Reading/Settings. Existing 3-pane RSS moved under Reading and is not auto-refreshed on Inbox startup. Android explicit About uses `/landing/index.html`, root cold start goes to the exported reader asset. | SOURCE, workspace header/mobile nav/native-entry/app-route-link; focus/route acceptance BLOCKED. |
+| P3 — Inbox UI | Compact mobile header; no Back-to-Reading; filter chips single-row scroll; sticky day headers; denser cards/unread dot; 3 mobile quick actions; context-specific empty states; IntersectionObserver load-more plus manual fallback; no-op active filter no longer forces busy; duplicate manual add blocked with inline error. | SOURCE, `inbox-pane.tsx`; 120-row viewport, touch, 200% font acceptance BLOCKED. |
+| P4 — Android media | Extract native BigPicture → large icon → app icon only **after allowlist eligibility**, scale/encode JPEG/PNG, limit Base64 to 400 KiB. SQLite v1 additive nullable `media_kind`/`media_b64` with guarded migration; 10-row serialized bridge batches, commit-before-ACK; optional media retained on repost; one text-only retry. IndexedDB v3 untouched. Card picture/icon and detail hero with fallback. | SOURCE, `CaptureMedia.kt`, `NotificationCaptureService.kt`, `NotificationDb.kt`, `native-capture.ts`, `inbox-store.ts`, media component; Android compile, migration/run and real image acceptance BLOCKED. |
+| P5 — settings and Reading | Captured Apps first; web Android-only explanation; searchable installed app picker, 50-app cap indicator, retry state; OPML category export; partial RSS refresh keeps previous articles of failed feeds; selection no longer jumps to a first item; browser-modifier keyboard shortcuts respected; RSS drawer hidden from keyboard when closed with Escape dismissal; mobile article read targets/reader header optimized. | SOURCE; actual navigation/readability and import/export roundtrip BLOCKED. |
+| P6 — landing | Replaced RSS-first landing with a bilingual Android notification-first narrative, truthful explicit permission/privacy copy, compact mobile header with responsive menu/theme/language, genuine photo assets, three capture steps, RSS as secondary, clear PWA-vs-native limitation. Updated site metadata and `public/manifest.json`. | SOURCE. Baseline LIVE: English 360/390px horizontal overflow; post-change live 320/360/390/430/768/1280 screenshots BLOCKED. |
+| P7 — checks/docs | Added focused IndexedDB media/repost/pagination tests, native media mapping test, Android bitmap and old-SQLite tests, RSS-only backup privacy test, app-route test correction, and updated README/PRODUCT/DESIGN/overview/architecture/portfolio. | Test source committed. **No test/build/APK commands executed successfully**. |
+
+## 2. Screen-by-screen audit matrix
+
+Each SOURCE decision is a source-code change/review only; it is **not** a pass of a rendered or on-device acceptance gate.
+
+| # | Surface / state | Keep / remove / change | Source evidence | Acceptance |
+|---|---|---|---|---|
+| 01 | Workspace home/launch | Keep guest/local-first; remove RSS-first entry; add Inbox-first route, four destinations | `reader/page.tsx`, nav, `native-entry-redirect.tsx`, app-route-link | SOURCE; device/browser BLOCKED |
+| 02 | Inbox/Saved/filters | Keep statuses and six filter modes; remove count guide/unread pill; compact/sticky/scroll/filter guard | `inbox-pane.tsx`, `inbox-store.ts` | SOURCE; long-list touch BLOCKED |
+| 03 | Inbox detail | Keep explicit open/preview; smaller bounded header, local picture hero and reopen Done | `inbox-detail.tsx`, `inbox-media.tsx` | SOURCE; short-screen/focus BLOCKED |
+| 04 | Add note/link + Share | Keep existing manual entry and share import; prevent duplicate Save, inline error, explicit share routes Inbox | `inbox-pane.tsx`, `reader/page.tsx` | SOURCE; end-to-end Android Share BLOCKED |
+| 05 | Capture onboarding | Keep Android permission and selected-package consent; keep one-time opt-out and Settings recovery | `inbox-pane.tsx`, `sources-settings.tsx` | SOURCE; prompt-device BLOCKED |
+| 06 | Captured-app settings | Keep permission checks, no account connector; move capture above RSS, add clear web/retry states | `sources-settings.tsx`, `settings-dialog.tsx` | SOURCE; live Android permission BLOCKED |
+| 07 | Installed app picker | Keep native app list and cap, add search/selected-count, remove nested picker scrollbar | `sources-settings.tsx` | SOURCE; 300-app/keyboard BLOCKED |
+| 08 | Preferences | Keep theme/language; put capture first and reduce reading-only wording/phone keyboard bulk | `settings-dialog.tsx` | SOURCE; large text/RTL BLOCKED |
+| 09 | Account/RSS backup | Keep optional Better Auth web login and explicit RSS backup; remove misleading Google-source/token wording | `account-settings.tsx`, `inbox-store.ts` | SOURCE; authenticated integration BLOCKED |
+| 10 | Sign-in and callback | Keep guest path; translate callback and point return to Inbox; preserve native sign-in-unavailable truth | `auth/sign-in/page.tsx`, `auth/callback/page.tsx` | SOURCE; OAuth live BLOCKED |
+| 11 | Reading feed rail/drawer | Keep RSS 3-pane; secondary destination, no auto-RSS fetch; hidden mobile drawer unfocusable, Escape close | `reader/page.tsx`, `feed-list.tsx` unchanged | SOURCE; focus return BLOCKED |
+| 12 | Feed discovery/catalog | Keep starter packs/catalog/manual URL; clarify button-group semantics and block competing additions | `feed-discovery-dialog.tsx` | SOURCE; keyboard/panels BLOCKED |
+| 13 | Article list/search | Keep read toggle/article summaries; Reading-only keyboard and larger targets, no Inbox-invisible search | `article-list.tsx`, `use-keyboard-nav.ts` | SOURCE; browser keyboard BLOCKED |
+| 14 | Reader | Keep sanitization and original link; compact mobile header/content clearance and stable selection on refresh | `reader-pane.tsx`, `reader/page.tsx` | SOURCE; short-screen/URL lifecycle BLOCKED |
+| 15 | OPML and feed management | Keep feed categories/URLs; include escaped category on export, preserve failed feed's previous items | `settings-dialog.tsx`, `reader/page.tsx` | SOURCE; real roundtrip BLOCKED |
+| 16 | PWA install/help | Keep legitimate browser install; landing-only promotion, distinguish PWA from Android native listener | `pwa-provider.tsx`, `pwa-install-help-dialog.tsx` | SOURCE; device install BLOCKED |
+| 17 | Error/offline/loading | Keep local-first and event updates; bounded import, separate Share/Capture failures, concise capture retry status | `native-capture.ts`, `reader/page.tsx`, `inbox-pane.tsx` | SOURCE; offline/abort/slow network BLOCKED |
+| 18 | Landing/header/footer | Keep existing logo and supplied photo assets; rebuild copy, page hierarchy, compact responsive menu, privacy | `landing/page.tsx`, metadata, manifest | SOURCE; visual/overflow/CLS BLOCKED |
+
+## 3. Verification gates — factual results
+
+| Gate | Result | Reason / exact unlock |
+|---|---|---|
+| `npm test` | **NOT RUN** | No repository checkout: container GitHub DNS fails (`Could not resolve host: github.com`). Code can be read/written through GitHub connector, not cloned into the test runtime. Run on owner's Mac with repo checkout and installed dependencies. |
+| `npx tsc --noEmit` | **NOT RUN** | Same missing checkout. |
+| `npm run lint` | **NOT RUN** | Same missing checkout. |
+| `npm run build` | **NOT RUN** | Same missing checkout/dependencies. |
+| `npm run build:capacitor` | **NOT RUN** | Needs repository checkout plus installed Capacitor/Android build toolchain. |
+| `cd android && ./gradlew connectedAndroidTest` | **NOT RUN** | Requires full Android workspace and connected `Pixel_9_2_16_KB` AVD/emulator; not present in this tool runtime. |
+| `npm run android:apk` | **NOT RUN** | Requires successful Capacitor sync and Gradle build. No `artifacts/al-rawi-full-test.apk` exists in this run; therefore no valid SHA-256 can be recorded. |
+| Mobile/browser 320–1280, RTL/LTR, scroll, visual QA, focus, 200% text, 120+ records | **NOT RUN** on candidate | No branch preview/locally served candidate; **feature branch deployment deliberately disabled**. Never infer pass from production screenshot. |
+| 3× creative director review rounds | **SOURCE-only** | Iterated code/layout/copy/privacy three times; visual start-to-finish review remains BLOCKED without running candidate. |
+| Google OAuth/Neon RSS backup and PWA install on real browser | **NOT RUN** | Preserve existing implementation; requires authenticated web acceptance and real install context. |
+| Owner POCO X5 Pro device acceptance | **OPEN / owner-only** | Install signed/test APK over existing app; verify 100+ Inbox items scrolling to oldest, real YouTube picture in card/detail, Gmail icon fallback, dismissal retention, Settings permission/app selection, and zero account connection. |
+
+**Invariants checked by source review (not by executed tests):**
+- App selection filter still precedes extras reads.
+- Dedupe ID and imported-row suppression remain; queue row caps 1000 pending and 500 imported unchanged.
+- SQLite v1 and IndexedDB v3 retained; additive media columns with guarded migration.
+- Database commits precede queue ACK; source-only fallback drops optional media, not text.
+- RSS manual backup only selects RSS items, strips optional media and never includes notification sources.
+- No Google account-source OAuth restored; optional web app sign-in serves manual RSS backup only.
+- Android manifest/permissions, Neon schema, and Vercel deployment settings unchanged.
+
+## 4. Deferred blockers and exact owner-side completion steps
+
+1. On the owner's Mac, `git fetch origin && git checkout fix-inbox-scroll-ux-thumbnails && npm ci` to obtain an executable workspace. Run the seven gates in Section 3, recording exact pass/fail counts and warnings; fix failures on **this branch**, do not merge.
+2. Run the existing `Pixel_9_2_16_KB` emulator with Android 13+/16 KB coverage; validate v1 SQLite migration with an existing installed app, live image extraction (picture/icon fallback), 10-record batches and backlog >500; no cloud/media telemetry.
+3. Locally serve candidate for browser viewport QA; seed 120 mixed-source items; measure true internal scroll, first+last items, fixed bottom-nav clearance, 320/360/390/430 horizontal overflow in EN+AR, theme, focus, search, 200% text, PWA and keyboard.
+4. Produce `artifacts/al-rawi-full-test.apk` with `npm run android:apk`; append its SHA-256, candidate commit and build logs; then owner device install/permission/thumbnail/scroll confirmation.
+5. Keep the PR **draft** until the gates and owner approvals have evidence. Merge to `main` only on an explicit separate release decision; that merge is the **only** authorized trigger for Vercel deployment.
+
+**Conclusion:** A substantial source implementation is pushed to the dedicated GitHub branch and is ready for build/QA. It is **not production-ready or fully accepted yet**, and no Vercel deployment, merge, GitHub Action run or Android APK delivery is claimed.

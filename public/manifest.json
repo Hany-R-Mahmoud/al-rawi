@@ -1,7 +1,7 @@
 {
   "name": "Al-Rawi",
   "short_name": "Al-Rawi",
-  "description": "Al-Rawi: calm bilingual RSS reading and a local inbox. Android adds optional Google sources and explicit sharing, without notification access.",
+  "description": "Al-Rawi keeps eligible notifications from your selected Android apps in a private on-device Inbox. The web supports notes, links and RSS reading.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
