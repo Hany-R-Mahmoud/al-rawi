@@ -25,6 +25,7 @@ import type { FeedCatalogCategory, FeedCatalogItem } from "@/lib/feed-catalog";
 import { readLocalReaderState, makeFeedId, writeLocalReaderState } from "@/lib/local-reader";
 import type { ParsedFeed } from "@/lib/feed-parser";
 import type { Article, ReaderFeed, StoredFeed } from "@/lib/reader-types";
+import type { InboxView } from "@/lib/inbox-types";
 import { translate, type Language, type TranslationKey } from "@/lib/i18n";
 import { apiUrl } from "@/lib/api-base";
 import { openExternalUrl } from "@/lib/open-url";
@@ -95,6 +96,7 @@ export default function Home() {
   const [showSearch, setShowSearch] = useState(false);
   const [destination, setDestination] = useState<"inbox" | "saved" | "reading">("inbox");
   const showInbox = destination !== "reading";
+  const [inboxView, setInboxView] = useState<InboxView>("all");
   const [readingLoaded, setReadingLoaded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsSection, setSettingsSection] = useState<SettingsSection>("appearance");
@@ -180,7 +182,7 @@ export default function Home() {
           rerun = false;
           try {
             const shares = await importPendingShares();
-            if (!disposed && shares > 0) setDestination("inbox");
+            if (!disposed && shares > 0) { setInboxView("all"); setDestination("inbox"); }
           } catch { /* Explicit shares stay queued on failure. */ }
           try { await importPendingCaptures(); }
           catch { /* Passive captures retry on a later event or resume. */ }
@@ -346,18 +348,18 @@ export default function Home() {
       <WorkspaceHeader
         active={destination}
         onReading={() => { setDestination("reading"); setShowMobileNav(false); }}
-        onInbox={() => { setDestination("inbox"); setShowMobileNav(false); }}
-        onSaved={() => { setDestination("saved"); setShowMobileNav(false); }}
+        onInbox={() => { setInboxView("all"); setDestination("inbox"); setShowMobileNav(false); }}
+        onSaved={() => { setInboxView("saved"); setDestination("saved"); setShowMobileNav(false); }}
         onSources={() => openSettings("sources")}
         onSettings={() => openSettings("sources")}
       />
       <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
-      {showInbox ? <InboxPane destinationView={destination === "saved" ? "saved" : "all"} onNavigateView={(next) => setDestination(next === "saved" ? "saved" : "inbox")} onManageSources={() => openSettings("sources")} /> : <>
+      {showInbox ? <InboxPane view={inboxView} onViewChange={(next) => { setInboxView(next); setDestination(next === "saved" ? "saved" : "inbox"); }} onManageSources={() => openSettings("sources")} /> : <>
       {showMobileNav && <button type="button" className="fixed inset-0 z-40 bg-black/40 lg:hidden" aria-label={t("closeFeeds")} onClick={() => setShowMobileNav(false)} />}
       <aside className={`fixed inset-y-0 z-50 w-72 bg-paper transition-transform lg:static lg:translate-x-0 ${language === "ar" ? "right-0 border-l border-border" : "left-0 border-r border-border"} ${showMobileNav ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"}`}>
         <FeedList feeds={feeds} selectedFeedId={selectedFeedId} onSelectFeed={(id) => { setSelectedFeedId(id); setShowMobileNav(false); }} onRefresh={() => void refreshFeeds(selectedFeedId ? feeds.filter((feed) => feed.id === selectedFeedId) : feeds)} onDeleteFeed={deleteFeed} onAddFeed={addFeed} onAddCatalogFeeds={addCatalogFeeds} />
       </aside>
-      <section className="flex min-w-0 flex-1 flex-col lg:flex-row">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
         <div className={`min-w-0 flex-1 flex-col lg:flex lg:w-[380px] lg:flex-none ${language === "ar" ? "border-l border-border" : "border-r border-border"} ${selectedArticle ? "hidden" : "flex"}`}>
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-paper/95 px-3 py-2.5 backdrop-blur-md">
             <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setShowMobileNav(true)} aria-label={t("openFeeds")}><Menu className="h-4 w-4" /></Button><BrandLogo className="h-14 w-14 lg:hidden" /><span className="hidden font-serif text-lg text-ink lg:inline">{t("articles")}</span><Button variant="outline" size="sm" className="gap-1 lg:hidden" onClick={() => setDestination("inbox")}><Inbox className="h-4 w-4" />{t("inbox")}</Button></div>
@@ -371,7 +373,7 @@ export default function Home() {
             <div className="hidden border-t border-border px-3 py-1.5 text-center font-mono text-[10px] text-ink-faint lg:block">{t("keyboardHelp")}</div>
           </div>
         </div>
-        <main className="hidden min-w-0 flex-1 bg-paper-raised lg:flex lg:flex-col"><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => { if (selectedArticle?.url) void openExternalUrl(selectedArticle.url); }} onMarkRead={() => selectedArticle && markRead(selectedArticle.id)} /></main>
+        <main className="hidden min-h-0 min-w-0 flex-1 bg-paper-raised lg:flex lg:flex-col"><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => { if (selectedArticle?.url) void openExternalUrl(selectedArticle.url); }} onMarkRead={() => selectedArticle && markRead(selectedArticle.id)} /></main>
         {selectedArticle && <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-paper-raised lg:hidden"><div className="border-b border-border px-3 py-2"><Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={() => setSelectedArticleId(null)}>{language === "ar" ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}{t("backToArticles")}</Button></div><ReaderPane article={selectedArticle} loading={readerLoading} onOpenOriginal={() => { if (selectedArticle.url) void openExternalUrl(selectedArticle.url); }} onMarkRead={() => markRead(selectedArticle.id)} /></main>}
       </section>
       </>}
@@ -380,8 +382,8 @@ export default function Home() {
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} section={settingsSection} onSectionChange={setSettingsSection} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} onAddFeed={addFeed} />
       <MobileBottomNav
         activeSection={mobileActiveSection}
-        onOpenInbox={() => { setDestination("inbox"); setShowMobileNav(false); }}
-        onOpenSaved={() => { setDestination("saved"); setShowMobileNav(false); }}
+        onOpenInbox={() => { setInboxView("all"); setDestination("inbox"); setShowMobileNav(false); }}
+        onOpenSaved={() => { setInboxView("saved"); setDestination("saved"); setShowMobileNav(false); }}
         onOpenReading={() => { setDestination("reading"); setSelectedArticleId(null); setShowMobileNav(false); }}
         onOpenSettings={() => { setShowMobileNav(false); openSettings("sources"); }}
       />
