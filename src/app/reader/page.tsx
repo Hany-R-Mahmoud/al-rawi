@@ -380,11 +380,10 @@ export default function Home() {
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} section={settingsSection} onSectionChange={setSettingsSection} feeds={feeds.map(toStoredFeed)} onImportFeeds={importFeeds} onAddFeed={addFeed} />
       <MobileBottomNav
         activeSection={mobileActiveSection}
-        onOpenFeeds={() => { setShowInbox(false); setSelectedArticleId(null); setShowSearch(false); setShowMobileNav(true); }}
-        onOpenArticles={() => { setShowInbox(false); setSelectedArticleId(null); setShowMobileNav(false); }}
-        onOpenInbox={() => { setShowInbox(true); setShowMobileNav(false); }}
-        onOpenSearch={() => { setShowInbox(false); setSelectedArticleId(null); setShowMobileNav(false); setShowSearch(true); }}
-        onOpenSettings={() => { setShowMobileNav(false); openSettings("appearance"); }}
+        onOpenInbox={() => { setDestination("inbox"); setShowMobileNav(false); }}
+        onOpenSaved={() => { setDestination("saved"); setShowMobileNav(false); }}
+        onOpenReading={() => { setDestination("reading"); setSelectedArticleId(null); setShowMobileNav(false); }}
+        onOpenSettings={() => { setShowMobileNav(false); openSettings("sources"); }}
       />
       {refreshing && <div className="pointer-events-none fixed bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border border-border bg-paper-raised px-3 py-1.5 text-xs text-ink-subtle shadow-sm"><Rss className="me-1 inline h-3 w-3 animate-pulse" />{t("refreshingFreshArticles")}</div>}
     </div>
