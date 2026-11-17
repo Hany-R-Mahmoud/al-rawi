@@ -10,7 +10,7 @@ import type { ComponentProps } from "react";
 type AppPage = "home" | "reader";
 
 export function appRouteHref(page: AppPage, nativeExport: boolean): string {
-  if (nativeExport) return page === "reader" ? "/reader/index.html" : "/index.html";
+  if (nativeExport) return page === "reader" ? "/reader/index.html" : "/landing/index.html";
   return page === "reader" ? "/reader" : "/";
 }
 
