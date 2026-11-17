@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.SharedPreferences
 import android.graphics.Bitmap
-import android.database.sqlite.SQLiteDatabase
 import android.util.Base64
 import kotlin.random.Random
 import androidx.test.ext.junit.runners.AndroidJUnit4
