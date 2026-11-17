@@ -48,7 +48,7 @@ export function inboxMatches(item: InboxItem, view: InboxView, query: string): b
   return item.status !== "archived";
 }
 
-export async function upsertInboxItems(items: InboxItem[]): Promise<void> {
+export async function upsertInboxItems(items: InboxItem[], options?: { dropMedia?: boolean }): Promise<void> {
   if (!items.length) return;
   const db = await openDb();
   try {
@@ -63,9 +63,12 @@ export async function upsertInboxItems(items: InboxItem[]): Promise<void> {
         req.onsuccess = () => {
           const previous = req.result as InboxItem | undefined;
           // Preserve user state and original timestamp across each sync.
-          store.put(previous
-            ? { ...item, receivedAt: previous.receivedAt, status: previous.status, readAt: previous.readAt ?? null }
-            : { ...item, readAt: item.readAt ?? null });
+          const merged: InboxItem = previous
+            ? { ...item, receivedAt: previous.receivedAt, status: previous.status,
+                readAt: previous.readAt ?? null, media: item.media ?? previous.media }
+            : { ...item, readAt: item.readAt ?? null };
+          if (options?.dropMedia) delete merged.media;
+          store.put(merged);
         };
       }
     });
@@ -104,13 +107,33 @@ export async function applyCloudRssItems(items: InboxItem[]): Promise<void> {
   notify();
 }
 
-async function storedItems(): Promise<InboxItem[]> {
+/**
+ * Cursor queries retain only the result window, never the whole database of
+ * potentially large Base64 pictures. Tie-breaking remains timestamp DESC, ID ASC.
+ */
+async function selectRecent(
+  maxItems: number,
+  predicate: (item: InboxItem) => boolean,
+): Promise<{ items: InboxItem[]; more: boolean }> {
   const db = await openDb();
   try {
-    return await new Promise<InboxItem[]>((resolve, reject) => {
-      const req = db.transaction(STORE).objectStore(STORE).getAll();
-      req.onsuccess = () => resolve(req.result as InboxItem[]);
+    return await new Promise((resolve, reject) => {
+      const selected: InboxItem[] = [];
+      let more = false;
+      const tx = db.transaction(STORE, "readonly");
+      const req = tx.objectStore(STORE).index("receivedAt").openCursor(null, "prev");
       req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const cursor = req.result;
+        if (!cursor) { resolve({ items: selected, more }); return; }
+        const item = cursor.value as InboxItem;
+        if (predicate(item)) {
+          selected.push(item);
+          selected.sort((left, right) => right.receivedAt - left.receivedAt || left.id.localeCompare(right.id));
+          if (selected.length > maxItems) { selected.pop(); more = true; }
+        }
+        cursor.continue();
+      };
     });
   } finally { db.close(); }
 }
@@ -143,15 +166,14 @@ export async function getInboxItem(id: string): Promise<InboxItem | null> {
 
 export async function listInbox(view: InboxView, query: string, page = 1): Promise<{ items: InboxItem[]; hasMore: boolean }> {
   const cutoff = Math.max(1, page) * PAGE_SIZE;
-  const all = (await storedItems()).filter((item) => inboxMatches(item, view, query))
-    .sort((a, b) => b.receivedAt - a.receivedAt || a.id.localeCompare(b.id));
-  return { items: all.slice(0, cutoff), hasMore: all.length > cutoff };
+  const result = await selectRecent(cutoff, (entry) => inboxMatches(entry, view, query));
+  return { items: result.items, hasMore: result.more };
 }
 
+/** Explicit cloud backup only selects RSS items and strips optional media. */
 export async function recentRssBackupItems(): Promise<InboxItem[]> {
-  return (await storedItems()).filter((entry) => entry.source === "rss")
-    .sort((a, b) => b.receivedAt - a.receivedAt || a.id.localeCompare(b.id))
-    .slice(0, 200);
+  const result = await selectRecent(200, (entry) => entry.source === "rss");
+  return result.items.map(({ media: _media, ...item }) => item);
 }
 
 async function patchInbox(id: string, patch: Partial<InboxItem>): Promise<void> {
