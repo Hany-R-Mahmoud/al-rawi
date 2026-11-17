@@ -24,6 +24,7 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
   const [captureApps, setCaptureApps] = useState<CaptureApp[]>([]);
   const [captureBusy, setCaptureBusy] = useState(false);
   const [captureError, setCaptureError] = useState(false);
+  const [captureSearch, setCaptureSearch] = useState("");
   const [addAppsOpen, setAddAppsOpen] = useState(false);
 
   const refreshCapture = useCallback(async () => {
@@ -94,6 +95,52 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
         <h3 className={"text-2xl text-ink " + (language === "ar" ? "font-arabic" : "font-serif")}>{t("sourcesTitle")}</h3>
         <p className="mt-2 max-w-xl text-sm leading-6 text-ink-subtle">{t("sourcesDescription")}</p>
       </header>
+      {!native && <section className="rounded-md border border-border bg-paper-raised p-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-ink"><Bell className="h-4 w-4 text-accent2" />{t("captureTitle")}</div>
+        <p className="mt-2 text-sm leading-6 text-ink-subtle">{language === "ar" ? "التقاط إشعارات التطبيقات المختارة متاح في تطبيق أندرويد فقط. على الويب تقدر تضيف روابط وملاحظات وتتابع RSS." : "Capture from selected apps requires the Android app. On the web, you can save links and notes and follow RSS feeds."}</p>
+      </section>}
+      {native && <section className="space-y-4 border-y border-border py-5" aria-label={t("captureTitle")}>
+        <div className="flex items-center gap-3">
+          <Bell className="h-5 w-5 shrink-0 text-accent2" aria-hidden />
+          <h4 className="font-semibold text-ink">{t("captureTitle")}</h4>
+        </div>
+        <p className="text-sm leading-6 text-ink-subtle">{t("capturePrivacy")}</p>
+        {captureEnabled === null && !captureError && <p role="status" className="text-sm text-ink-subtle">{language === "ar" ? "بنراجع إذن الإشعارات..." : "Checking notification access..."}</p>}
+        {captureEnabled === false && <>
+          <p className="text-sm leading-6 text-ink-subtle">{t("captureHintOff")}</p>
+          <Button className="min-h-11" onClick={() => void openListenerSettings().catch(() => setCaptureError(true))}>{t("captureGrantAction")}</Button>
+        </>}
+        {captureEnabled === true && <>
+          <p className="text-sm leading-6 text-ink-subtle">{t("captureOn")}</p>
+          <h5 className="font-medium text-ink">{t("captureAppsTitle")}</h5>
+          {!capturePackages.length && <p className="text-sm text-ink-subtle">{t("captureEmptyApps")}</p>}
+          <div className="space-y-2">
+            {capturePackages.map((name) => {
+              const label = captureApps.find((app) => app.packageName === name)?.label ||
+                (name === "com.google.android.youtube" ? "YouTube" : name === "com.google.android.gm" ? "Gmail" : name);
+              return <label key={name} className="flex min-h-11 items-center justify-between gap-4 rounded-md border border-border px-3 py-2 text-sm text-ink">
+                <span dir="auto" className="min-w-0 break-words">{label}</span>
+                <Switch aria-label={label} checked disabled={captureBusy} onCheckedChange={() => void toggleCapture(name, false)} />
+              </label>;
+            })}
+          </div>
+          <Button variant="outline" className="min-h-11" onClick={() => setAddAppsOpen((v) => !v)}>{t("captureAddApp")}</Button>
+          {addAppsOpen && <div className="space-y-2">
+            <Input aria-label={language === "ar" ? "ابحث عن تطبيق" : "Search apps"} placeholder={language === "ar" ? "ابحث عن تطبيق..." : "Search installed apps..."} value={captureSearch} onChange={(event) => setCaptureSearch(event.target.value)} />
+            <div className="max-h-64 space-y-2 overflow-y-auto">
+            {captureApps.filter((app) => !capturePackages.includes(app.packageName) && (app.label + " " + app.packageName).toLowerCase().includes(captureSearch.toLowerCase())).map((app) =>
+              <label key={app.packageName} className="flex min-h-11 items-center justify-between gap-4 border-b border-border px-2 py-1 text-sm text-ink">
+                <span dir="auto" className="min-w-0 break-words">{app.label}</span>
+                <Switch aria-label={app.label} checked={false} disabled={captureBusy || capturePackages.length >= 50} onCheckedChange={() => void toggleCapture(app.packageName, true)} />
+              </label>
+            )}
+            </div>
+          </div>}
+        </>}
+        {captureError && <div className="flex flex-wrap items-center gap-2"><p role="alert" className="text-xs text-destructive">{t("inboxError")}</p><Button variant="outline" size="sm" onClick={() => void refreshCapture()}>{language === "ar" ? "إعادة المحاولة" : "Retry"}</Button></div>}
+      </section>}
+      <section className="border-t border-border pt-6">
+        <h4 className="mb-3 text-sm font-semibold text-ink">{language === "ar" ? "مصادر القراءة" : "Reading sources"}</h4>
       <div className="space-y-5 border-y border-border py-5">
         <div className="flex items-start gap-3">
           <Rss className="mt-1 h-5 w-5 shrink-0 text-accent2" aria-hidden />
@@ -120,42 +167,7 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
         </form>
 
       </div>
-      {native && <section className="space-y-4 border-y border-border py-5" aria-label={t("captureTitle")}>
-        <div className="flex items-center gap-3">
-          <Bell className="h-5 w-5 shrink-0 text-accent2" aria-hidden />
-          <h4 className="font-semibold text-ink">{t("captureTitle")}</h4>
-        </div>
-        <p className="text-sm leading-6 text-ink-subtle">{t("capturePrivacy")}</p>
-        {captureEnabled === false && <>
-          <p className="text-sm leading-6 text-ink-subtle">{t("captureHintOff")}</p>
-          <Button className="min-h-11" onClick={() => void openListenerSettings().catch(() => setCaptureError(true))}>{t("captureGrantAction")}</Button>
-        </>}
-        {captureEnabled === true && <>
-          <p className="text-sm leading-6 text-ink-subtle">{t("captureOn")}</p>
-          <h5 className="font-medium text-ink">{t("captureAppsTitle")}</h5>
-          {!capturePackages.length && <p className="text-sm text-ink-subtle">{t("captureEmptyApps")}</p>}
-          <div className="space-y-2">
-            {capturePackages.map((name) => {
-              const label = captureApps.find((app) => app.packageName === name)?.label ||
-                (name === "com.google.android.youtube" ? "YouTube" : name === "com.google.android.gm" ? "Gmail" : name);
-              return <label key={name} className="flex min-h-11 items-center justify-between gap-4 rounded-md border border-border px-3 py-2 text-sm text-ink">
-                <span dir="auto" className="min-w-0 break-words">{label}</span>
-                <Switch aria-label={label} checked disabled={captureBusy} onCheckedChange={() => void toggleCapture(name, false)} />
-              </label>;
-            })}
-          </div>
-          <Button variant="outline" className="min-h-11" onClick={() => setAddAppsOpen((v) => !v)}>{t("captureAddApp")}</Button>
-          {addAppsOpen && <div className="max-h-64 space-y-2 overflow-y-auto">
-            {captureApps.filter((app) => !capturePackages.includes(app.packageName)).map((app) =>
-              <label key={app.packageName} className="flex min-h-11 items-center justify-between gap-4 border-b border-border px-2 py-1 text-sm text-ink">
-                <span dir="auto" className="min-w-0 break-words">{app.label}</span>
-                <Switch aria-label={app.label} checked={false} disabled={captureBusy || capturePackages.length >= 50} onCheckedChange={() => void toggleCapture(app.packageName, true)} />
-              </label>
-            )}
-          </div>}
-        </>}
-        {captureError && <p role="alert" className="text-xs text-destructive">{t("inboxError")}</p>}
-      </section>}
+      </section>
       {error && <p role="alert" className="border-s-2 border-destructive px-3 py-2 text-xs text-destructive">{error}</p>}
     </section>
   );
