@@ -23,11 +23,14 @@ test("backup selects the latest 200 RSS records including archived, before limit
   await saveRssBackup([]);
   assert.equal(uploads[1].items.length, 1);
   await upsertInboxItems([...rssRecords, ...Array.from({ length: 300 }, (_, index): InboxItem => ({
-    id: `gmail:backup:${index}`, source: "gmail", title: "Private", text: "Secret",
+    id: `notification:backup:${index}`, source: "notification", title: "Private", text: "Secret",
+    media: { kind: "picture", dataUrl: "data:image/jpeg;base64,U2VjcmV0" },
     receivedAt: 1790000000000 + index, readAt: null, status: "new",
   }))]);
   await saveRssBackup([]);
   assert.deepEqual(uploads[2].items.map((entry) => entry.id), rssRecords.slice(5).reverse().map((entry) => entry.id));
   assert.ok(uploads[2].items.some((entry) => entry.status === "archived"));
   assert.ok(uploads[2].items.every((entry) => entry.source === "rss"));
+  assert.ok(uploads[2].items.every((entry) => entry.media === undefined));
+  assert.equal(JSON.stringify(uploads[2]).includes("U2VjcmV0"), false);
 });
