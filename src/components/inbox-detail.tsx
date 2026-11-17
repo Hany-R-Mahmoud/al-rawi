@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Archive, Bookmark, BookmarkCheck, Check, CircleCheck, Eye, EyeOff, Loader2, PlayCircle } from "lucide-react";
+import { InboxMedia } from "@/components/inbox-media";
+import { Bell } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
@@ -33,7 +35,9 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
       .catch(() => { if (live) { setPreview({ kind: "text", content: item.text }); setError(t("hubPreviewLimited")); } })
       .finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
-  }, [item, t]);
+  // Status/read changes do not restart a mounted preview.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.id, t]);
 
   if (!item) return null;
   const date = new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.receivedAt));
@@ -42,8 +46,8 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
 
   return (
     <Dialog open={!!item} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="flex max-h-[92dvh] min-h-[420px] w-[calc(100vw-24px)] max-w-[800px] flex-col gap-0 overflow-hidden border-border bg-paper-raised p-0">
-        <DialogHeader className="shrink-0 border-b border-border px-5 pb-5 pt-7 sm:px-8">
+      <DialogContent className="flex max-h-[92dvh] min-h-0 w-[calc(100vw-24px)] max-w-[800px] flex-col gap-0 overflow-hidden border-border bg-paper-raised p-0">
+        <DialogHeader className="shrink-0 border-b border-border px-5 pb-3 pt-5 sm:px-8 sm:pt-7">
           <p className="font-mono text-[11px] text-accent2">{t("hubDetailSource")} · {item.feedTitle || item.source.toUpperCase()} · {date}</p>
           <DialogTitle dir="auto" className={"mt-2 pe-8 text-2xl leading-snug text-ink sm:text-3xl " + (language === "ar" ? "font-arabic" : "font-serif")}>{item.title}</DialogTitle>
           <DialogDescription className="text-xs text-ink-faint">{t("hubDetailHelp")}</DialogDescription>
