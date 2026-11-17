@@ -18,4 +18,6 @@ export type InboxItem = {
   author?: string;
   feedTitle?: string;
   packageName?: string;
+  /** Device-local image captured from a user-selected Android app. */
+  media?: { kind: "picture" | "largeIcon" | "appIcon"; dataUrl: string };
 };
