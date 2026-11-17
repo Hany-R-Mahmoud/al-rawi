@@ -1,8 +1,15 @@
 # Al-Rawi
 
-Al-Rawi is a bilingual, local-first RSS reader. Feed subscriptions, categories,
-language, and reading preferences stay in the browser; fresh articles and
-extracted article HTML are held in memory for the current session.
+Al-Rawi is a bilingual, local-first **Android notification Inbox** with optional
+links, notes, explicit Android sharing and secondary RSS reading. On Android,
+the owner chooses the apps whose *new, eligible* notifications are captured.
+Notification text and bounded pictures stay in the phone's private SQLite queue
+and IndexedDB; dismissal from the Android shade does not delete saved items.
+No Google account connection is involved in notification capture. The web/PWA
+cannot access other apps' notifications, but can save links and read RSS feeds.
+
+Reading subscriptions, categories, language, and preferences remain local-first.
+Fresh RSS articles and extracted HTML are held in memory for the session.
 
 ## Quick start
 
@@ -28,8 +35,10 @@ The test script covers focused library tests; there is no conventional test dire
 
 ## What is implemented
 
-- Landing page at `/` and the reader workspace at `/reader`.
+- Landing page at `/` and the **Inbox-first** workspace at `/reader`. Mobile and desktop navigation: Inbox, Saved, Reading, Settings.
 - English and Arabic UI with RTL document direction and article direction detection.
+- Android-only user-selected notification capture, with bounded on-device pictures/icons and search/read/save/done/archive in Inbox.
+- Android Share plus manual links/notes in Inbox; no notifications uploaded to cloud.
 - Starter RSS catalog, manual feed URLs, categories, search, refresh, and delete.
 - OPML import/export from Settings.
 - Same-origin server routes for public RSS fetching and article extraction.
@@ -42,8 +51,8 @@ The test script covers focused library tests; there is no conventional test dire
   install guidance, dismissal recovery, and embedded-browser fallbacks.
 
 Earlier versions of the app had no account system, database, environment-variable
-contract, cron worker, or server-side feed store. The optional web account and
-manual RSS backup integration is now on `main`, with Google OAuth hosted by the app.
+contract, cron worker, or server-side feed store. The optional Al-Rawi web account and
+manual **RSS-only** backup integration is on `main`, with Google OAuth hosted by the app. Captured notifications and pictures are never included in RSS backup.
 The older implementation brief in
 [`064-rss-reader-web.md`](064-rss-reader-web.md) describes capabilities that are
 not present in the current source, including a read-later queue and IndexedDB
