@@ -1,57 +1,39 @@
 "use client";
 
-import { Inbox, List, Rss, Search, Settings2, type LucideIcon } from "lucide-react";
+import { BookOpenText, Bookmark, Inbox, Settings2, type LucideIcon } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 
-export type MobileNavSection = "feeds" | "articles" | "inbox" | "search" | "settings";
+export type MobileNavSection = "inbox" | "saved" | "reading" | "settings";
 
-type MobileBottomNavProps = {
+type Props = {
   activeSection: MobileNavSection;
-  onOpenFeeds: () => void;
-  onOpenArticles: () => void;
-  onOpenSearch: () => void;
   onOpenInbox: () => void;
+  onOpenSaved: () => void;
+  onOpenReading: () => void;
   onOpenSettings: () => void;
 };
 
-export function MobileBottomNav({
-  activeSection,
-  onOpenFeeds,
-  onOpenArticles,
-  onOpenSearch,
-  onOpenInbox,
-  onOpenSettings,
-}: MobileBottomNavProps) {
+export function MobileBottomNav({ activeSection, onOpenInbox, onOpenSaved, onOpenReading, onOpenSettings }: Props) {
   const { t } = useLanguage();
   const items: Array<{ section: MobileNavSection; label: string; icon: LucideIcon; onSelect: () => void }> = [
-    { section: "feeds", label: t("feeds"), icon: Rss, onSelect: onOpenFeeds },
-    { section: "articles", label: t("articles"), icon: List, onSelect: onOpenArticles },
     { section: "inbox", label: t("inbox"), icon: Inbox, onSelect: onOpenInbox },
-    { section: "search", label: t("search"), icon: Search, onSelect: onOpenSearch },
+    { section: "saved", label: t("inboxSaved"), icon: Bookmark, onSelect: onOpenSaved },
+    { section: "reading", label: t("uiReading"), icon: BookOpenText, onSelect: onOpenReading },
     { section: "settings", label: t("settings"), icon: Settings2, onSelect: onOpenSettings },
   ];
-
   return (
-    <nav
-      aria-label={t("mobileNavigation")}
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-paper/95 px-2 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] backdrop-blur-md lg:hidden"
-    >
+    <nav aria-label={t("mobileNavigation")}
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-paper/95 px-2 pt-1.5 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] backdrop-blur-md lg:hidden">
       <div className="mx-auto flex max-w-md items-center gap-1">
-        {items.map(({ section, label, icon: Icon, onSelect }) => {
-          const active = activeSection === section;
-          return (
-            <button
-              key={section}
-              type="button"
-              aria-pressed={active}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-md px-1.5 py-1.5 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring ${active ? "bg-muted text-ink" : "text-ink-faint hover:bg-muted/70 hover:text-ink"}`}
-              onClick={onSelect}
-            >
-              <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
-              <span className="max-w-full truncate">{label}</span>
-            </button>
-          );
-        })}
+        {items.map(({ section, label, icon: Icon, onSelect }) => (
+          <button key={section} type="button" aria-current={activeSection === section ? "page" : undefined}
+            onClick={onSelect}
+            className={"flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-[11px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent2 " +
+              (activeSection === section ? "bg-muted text-ink" : "text-ink-faint hover:bg-muted/70 hover:text-ink")}>
+            <Icon className="h-5 w-5" aria-hidden />
+            <span className="max-w-full truncate">{label}</span>
+          </button>
+        ))}
       </div>
     </nav>
   );
