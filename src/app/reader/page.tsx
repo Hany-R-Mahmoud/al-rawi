@@ -234,6 +234,15 @@ export default function Home() {
 
   const selectedArticle = visibleArticles.find((article) => article.id === selectedArticleId) || null;
   const selectedArticleUrl = selectedArticle?.url;
+  useEffect(() => {
+    if (!showMobileNav) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowMobileNav(false);
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, [showMobileNav]);
+
   const mobileActiveSection: MobileNavSection = showSettings ? "settings" : destination;
 
   useEffect(() => {
@@ -354,7 +363,7 @@ export default function Home() {
       <div className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
       {showInbox ? <InboxPane view={inboxView} onViewChange={(next) => { setInboxView(next); setDestination(next === "saved" ? "saved" : "inbox"); }} onManageSources={() => openSettings("sources")} /> : <>
       {showMobileNav && <button type="button" className="fixed inset-0 z-40 bg-black/40 lg:hidden" aria-label={t("closeFeeds")} onClick={() => setShowMobileNav(false)} />}
-      <aside className={`fixed inset-y-0 z-50 w-72 bg-paper transition-transform lg:static lg:translate-x-0 ${language === "ar" ? "right-0 border-l border-border" : "left-0 border-r border-border"} ${showMobileNav ? "translate-x-0" : language === "ar" ? "translate-x-full" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 z-50 w-72 bg-paper transition-transform lg:static lg:translate-x-0 ${language === "ar" ? "right-0 border-l border-border" : "left-0 border-r border-border"} ${showMobileNav ? "visible translate-x-0" : language === "ar" ? "invisible translate-x-full lg:visible" : "invisible -translate-x-full lg:visible"}`}>
         <FeedList feeds={feeds} selectedFeedId={selectedFeedId} onSelectFeed={(id) => { setSelectedFeedId(id); setShowMobileNav(false); }} onRefresh={() => void refreshFeeds(selectedFeedId ? feeds.filter((feed) => feed.id === selectedFeedId) : feeds)} onDeleteFeed={deleteFeed} onAddFeed={addFeed} onAddCatalogFeeds={addCatalogFeeds} />
       </aside>
       <section className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
