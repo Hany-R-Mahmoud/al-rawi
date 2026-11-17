@@ -170,7 +170,8 @@ export function PwaProvider({ children }: { children: ReactNode }) {
   const dismissalActive = isWithinTtl(dismissedAt, PWA_DISMISSAL_COOLDOWN_MS);
   const mounted = currentUrl !== "";
   const shouldShowInstallAction = mounted && !isStandalone && !installedHintActive;
-  const shouldShowPromotion = shouldShowInstallAction && !dismissalActive;
+  const landingRoute = (() => { try { const path = new URL(currentUrl).pathname; return path === "/" || path === "/landing" || path === "/landing/"; } catch { return false; } })();
+  const shouldShowPromotion = shouldShowInstallAction && landingRoute && !dismissalActive;
   const externalBrowserUrl = platform === "android" && webView ? buildAndroidIntentUrl(currentUrl) || currentUrl : currentUrl;
 
   const value = useMemo<PwaContextValue>(() => ({
