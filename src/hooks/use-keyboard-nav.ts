@@ -27,7 +27,7 @@ export function useKeyboardNav(config: KeyboardNavConfig) {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (!enabled || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.isComposing) return;
+      if (!enabled || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.isComposing) return;
 
       // Don't trigger when typing in input fields
       const target = e.target as HTMLElement;
