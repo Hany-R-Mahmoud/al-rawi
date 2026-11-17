@@ -2,16 +2,16 @@
 
 ## Purpose
 
-Al-Rawi is a bilingual, local-first RSS reader for collecting public feeds and
-reading their articles in a focused three-pane workspace. Feed subscriptions
+Al-Rawi is a bilingual, local-first Inbox for notifications from explicitly selected Android apps, with manual links/notes and a secondary RSS reader. Feed subscriptions
 and preferences are stored in the browser. Feed results and extracted article
 content are fetched on demand and kept in memory for the current session.
 
 ## Current user experience
 
-- `/` presents the bilingual landing page.
-- `/reader` provides feed navigation, an article list, and a reader pane.
-- Users can add feeds from the starter catalog, enter a public RSS URL, or
+- `/` presents the bilingual notification-first landing page; normal Android launch opens the Inbox workspace.
+- `/reader` opens Inbox, with Saved (filtered Inbox), Reading (RSS three-pane) and Settings (capture apps first).
+- Users may keep new eligible notifications on Android only, with optional local thumbnails, or save links and notes on web/Android.
+- Reading users can add feeds from the starter catalog, enter a public RSS URL, or
   import OPML from Settings.
 - Users can search the current in-memory article list, refresh feeds, mark
   articles read/unread, open the original article, and remove feeds.
