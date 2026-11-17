@@ -66,7 +66,15 @@ class NotificationDb(context: Context, databaseName: String = "notifications.db"
         db.execSQL("""CREATE TABLE IF NOT EXISTS captured_notifications (
             id TEXT PRIMARY KEY, package_name TEXT NOT NULL, app_label TEXT NOT NULL,
             title TEXT NOT NULL, text TEXT NOT NULL, url TEXT NOT NULL DEFAULT '',
-            posted_at INTEGER NOT NULL, imported INTEGER NOT NULL DEFAULT 0)""")
+            posted_at INTEGER NOT NULL, imported INTEGER NOT NULL DEFAULT 0,
+            media_kind TEXT, media_b64 TEXT)""")
+        val columns = mutableSetOf<String>()
+        db.rawQuery("PRAGMA table_info(captured_notifications)", null).use { cursor ->
+            val nameIndex = cursor.getColumnIndexOrThrow("name")
+            while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
+        }
+        if ("media_kind" !in columns) db.execSQL("ALTER TABLE captured_notifications ADD COLUMN media_kind TEXT")
+        if ("media_b64" !in columns) db.execSQL("ALTER TABLE captured_notifications ADD COLUMN media_b64 TEXT")
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_captured_posted ON captured_notifications(posted_at)")
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_captured_imported ON captured_notifications(imported, posted_at)")
     }
@@ -83,7 +91,8 @@ class NotificationDb(context: Context, databaseName: String = "notifications.db"
 
     /** Primitives can be exercised by instrumentation without a live notification. */
     fun save(context: Context, packageName: String, key: String, flags: Int,
-             label: String, rawTitle: String?, rawText: String?, postTime: Long): Boolean {
+             label: String, rawTitle: String?, rawText: String?, postTime: Long,
+              media: CaptureMedia.Encoded? = null): Boolean {
         if (!CaptureRules.eligible(context, packageName, flags)) return false
         val title = CaptureRules.title(rawTitle)
         val body = CaptureRules.text(null, rawText)
@@ -101,6 +110,7 @@ class NotificationDb(context: Context, databaseName: String = "notifications.db"
             if (existing == 0) {
                 val update = ContentValues().apply {
                     put("title", title); put("text", body); put("url", CaptureRules.url(body))
+                    if (media != null) { put("media_kind", media.kind); put("media_b64", media.base64) }
                 }
                 db.update("captured_notifications", update, "id = ?", arrayOf(id))
             } else {
@@ -109,6 +119,7 @@ class NotificationDb(context: Context, databaseName: String = "notifications.db"
                     put("app_label", label); put("title", title); put("text", body)
                     put("url", CaptureRules.url(body))
                     put("posted_at", if (postTime > 0) postTime else System.currentTimeMillis())
+                    if (media != null) { put("media_kind", media.kind); put("media_b64", media.base64) }
                     put("imported", 0)
                 }
                 db.insertOrThrow("captured_notifications", null, values)
@@ -131,7 +142,7 @@ class NotificationDb(context: Context, databaseName: String = "notifications.db"
 
     fun list(limit: Int): JSONArray {
         val result = JSONArray()
-        readableDatabase.rawQuery("""SELECT id,package_name,app_label,title,text,url,posted_at
+        readableDatabase.rawQuery("""SELECT id,package_name,app_label,title,text,url,posted_at,media_kind,media_b64
             FROM captured_notifications WHERE imported = 0
             ORDER BY posted_at ASC, id ASC LIMIT ${limit.coerceIn(0,500)}""", null).use { c ->
             while (c.moveToNext()) result.put(JSONObject().apply {
@@ -139,6 +150,9 @@ class NotificationDb(context: Context, databaseName: String = "notifications.db"
                 put("appLabel", c.getString(2)); put("title", c.getString(3))
                 put("text", c.getString(4)); put("url", c.getString(5))
                 put("postedAt", c.getLong(6))
+                if (!c.isNull(7) && !c.isNull(8)) {
+                    put("mediaKind", c.getString(7)); put("mediaB64", c.getString(8))
+                }
             })
         }
         return result
