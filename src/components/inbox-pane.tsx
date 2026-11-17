@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InboxDetail } from "@/components/inbox-detail";
+import { InboxMedia } from "@/components/inbox-media";
 import { changeInboxStatus, deleteInboxItem, getInboxItem, listInbox, setInboxRead, upsertInboxItems } from "@/lib/inbox-store";
 import type { InboxItem, InboxStatus, InboxSource, InboxView } from "@/lib/inbox-types";
 import { isNative } from "@/lib/native-shares";
@@ -219,7 +220,7 @@ export function InboxPane({ view, onViewChange, onManageSources }: { view: Inbox
                 const Icon = icons[item.source];
                 return <li key={item.id} className="py-3 sm:py-5">
                   <article className="flex items-start gap-3 sm:gap-5">
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-paper-raised text-accent2"><Icon className="h-4 w-4" aria-hidden /></span>
+                    <InboxMedia item={item} Icon={Icon} />
                     <div className="min-w-0 flex-1">
                       <div className="mb-2 flex flex-wrap items-center gap-2 font-mono text-[10px] text-ink-faint">
                         <span className="font-semibold">{t(sourceLabels[item.source])}{item.feedTitle ? " · " + item.feedTitle : ""}</span>
