@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Archive, Bell, Bookmark, Check, ExternalLink, Eye, EyeOff, Inbox, Mail, Plus, Plug2, RefreshCw, Rss, Search, Share2, Trash2, Tv } from "lucide-react";
+import { Archive, Bell, Bookmark, Check, ExternalLink, Eye, EyeOff, Inbox, Mail, Plus, Plug2, RefreshCw, Rss, Search, Share2, Trash2, Tv } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,7 +98,7 @@ export function InboxPane({ view, onViewChange, onManageSources }: { view: Inbox
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    queueMicrotask(() => { if (active) setLoading(true); });
     void listInbox(view, debounced, page).then(({ items: latest, hasMore: more }) => {
       if (!active) return;
       setItems(latest);
@@ -209,9 +209,9 @@ export function InboxPane({ view, onViewChange, onManageSources }: { view: Inbox
           {loading && <p role="status" className="py-8 text-sm text-ink-subtle">{t("uiLoadingInbox")}</p>}
           {!loading && !items.length && <section className="mx-auto flex max-w-sm flex-col items-center gap-4 px-4 py-16 text-center">
             <Inbox className="h-10 w-10 text-accent2" strokeWidth={1.2} aria-hidden />
-            <h2 className={"text-2xl text-ink " + (language === "ar" ? "font-arabic" : "font-serif")}>{t("inboxEmpty")}</h2>
-            <p className="text-sm leading-7 text-ink-subtle">{t("hubEmptyHelp")}</p>
-            <Button variant="default" onClick={onManageSources}>{t("uiManageSources")}</Button>
+            <h2 className={"text-2xl text-ink " + (language === "ar" ? "font-arabic" : "font-serif")}>{view === "saved" ? t("inboxSaved") : t("inboxEmpty")}</h2>
+            <p className="text-sm leading-7 text-ink-subtle">{search.trim() ? (language === "ar" ? "مفيش نتائج للكلام ده. جرّب بحث تاني." : "No matching results. Try another search.") : view === "saved" ? (language === "ar" ? "لما تحفظ إشعار أو رابط هتلاقيه هنا." : "Saved notifications and links will appear here.") : view === "done" ? (language === "ar" ? "لسه مفيش عناصر خلصت منها." : "Nothing completed yet.") : view === "archived" ? (language === "ar" ? "الأرشيف فاضي لحد دلوقتي." : "Your archive is empty.") : view === "unread" ? (language === "ar" ? "قرأت كل العناصر الموجودة." : "You are all caught up.") : view === "read" ? (language === "ar" ? "مفيش عناصر مقروءة." : "No read items yet.") : t("hubEmptyHelp")}</p>
+            {view === "all" && !search.trim() && <Button variant="default" onClick={onManageSources}>{t("uiManageSources")}</Button>}
           </section>}
           {groups.map(([date, cards]) => <section key={date} className="mb-8" aria-label={date}>
             <h2 className="sticky top-0 z-10 border-b border-border bg-paper py-2 font-serif text-base font-normal text-ink-subtle">{date}</h2>
