@@ -112,7 +112,7 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
         </>}
         {captureEnabled === true && <>
           <p className="text-sm leading-6 text-ink-subtle">{t("captureOn")}</p>
-          <h5 className="font-medium text-ink">{t("captureAppsTitle")}</h5>
+          <h5 className="flex flex-wrap items-center justify-between gap-2 font-medium text-ink">{t("captureAppsTitle")}<span className="text-xs font-normal text-ink-faint" aria-live="polite">{capturePackages.length} / 50</span></h5>
           {!capturePackages.length && <p className="text-sm text-ink-subtle">{t("captureEmptyApps")}</p>}
           <div className="space-y-2">
             {capturePackages.map((name) => {
@@ -127,14 +127,15 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
           <Button variant="outline" className="min-h-11" onClick={() => setAddAppsOpen((v) => !v)}>{t("captureAddApp")}</Button>
           {addAppsOpen && <div className="space-y-2">
             <Input aria-label={language === "ar" ? "ابحث عن تطبيق" : "Search apps"} placeholder={language === "ar" ? "ابحث عن تطبيق..." : "Search installed apps..."} value={captureSearch} onChange={(event) => setCaptureSearch(event.target.value)} />
-            <div className="max-h-64 space-y-2 overflow-y-auto">
-            {captureApps.filter((app) => !capturePackages.includes(app.packageName) && (app.label + " " + app.packageName).toLowerCase().includes(captureSearch.toLowerCase())).map((app) =>
+            <div className="space-y-2">
+            {captureApps.filter((app) => !capturePackages.includes(app.packageName) && (app.label + " " + app.packageName).toLowerCase().includes(captureSearch.toLowerCase())).slice(0, captureSearch.trim() ? undefined : 40).map((app) =>
               <label key={app.packageName} className="flex min-h-11 items-center justify-between gap-4 border-b border-border px-2 py-1 text-sm text-ink">
                 <span dir="auto" className="min-w-0 break-words">{app.label}</span>
                 <Switch aria-label={app.label} checked={false} disabled={captureBusy || capturePackages.length >= 50} onCheckedChange={() => void toggleCapture(app.packageName, true)} />
               </label>
             )}
             </div>
+            {!captureSearch.trim() && captureApps.length > 40 && <p className="text-xs text-ink-faint">{language === "ar" ? "استخدم البحث علشان تلاقي تطبيقات أكتر." : "Search to find more installed apps."}</p>}
           </div>}
         </>}
         {captureError && <div className="flex flex-wrap items-center gap-2"><p role="alert" className="text-xs text-destructive">{t("inboxError")}</p><Button variant="outline" size="sm" onClick={() => void refreshCapture()}>{language === "ar" ? "إعادة المحاولة" : "Retry"}</Button></div>}
