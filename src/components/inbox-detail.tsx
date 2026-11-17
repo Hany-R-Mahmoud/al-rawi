@@ -49,7 +49,7 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
       <DialogContent className="flex max-h-[92dvh] min-h-0 w-[calc(100vw-24px)] max-w-[800px] flex-col gap-0 overflow-hidden border-border bg-paper-raised p-0">
         <DialogHeader className="shrink-0 border-b border-border px-5 pb-3 pt-5 sm:px-8 sm:pt-7">
           <p className="font-mono text-[11px] text-accent2">{t("hubDetailSource")} · {item.feedTitle || item.source.toUpperCase()} · {date}</p>
-          <DialogTitle dir="auto" className={"mt-2 pe-8 text-2xl leading-snug text-ink sm:text-3xl " + (language === "ar" ? "font-arabic" : "font-serif")}>{item.title}</DialogTitle>
+          <DialogTitle dir="auto" className={"mt-2 max-h-28 overflow-y-auto pe-8 text-xl leading-snug text-ink sm:max-h-36 sm:text-3xl " + (language === "ar" ? "font-arabic" : "font-serif")}>{item.title}</DialogTitle>
           <DialogDescription className="text-xs text-ink-faint">{t("hubDetailHelp")}</DialogDescription>
           <div className="flex flex-wrap gap-1.5 pt-3">
             <Button variant="outline" size="sm" className="min-h-9 gap-1.5" onClick={() => void updateRead(!item.readAt)}>
@@ -60,6 +60,7 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
               {item.status === "saved" ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
               {item.status === "saved" ? t("hubUnsave") : t("inboxSave")}
             </Button>
+            {item.status === "done" && <Button variant="outline" size="sm" className="min-h-10" onClick={() => void updateStatus("new")}>{t("inboxRestore")}</Button>}
             {item.status !== "done" && <Button variant="ghost" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("done")}><CircleCheck className="h-4 w-4"/>{t("inboxDone")}</Button>}
             {item.status !== "archived" && <Button variant="ghost" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("archived")}><Archive className="h-4 w-4"/>{t("inboxArchive")}</Button>}
             {item.status === "archived" && <Button variant="outline" size="sm" className="min-h-9 gap-1" onClick={() => void updateStatus("new")}><Check className="h-4 w-4"/>{t("inboxRestore")}</Button>}
@@ -68,6 +69,7 @@ export function InboxDetail({ item, onClose, onStatus, onRead }: Props) {
           </div>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-7 sm:px-8">
+          <InboxMedia item={item} Icon={Bell} hero />
           {error && <p role="alert" className="mb-4 text-xs text-destructive">{error}</p>}
           {loading && <p role="status" className="flex items-center gap-2 text-xs text-ink-subtle"><Loader2 className="h-4 w-4 animate-spin"/>{t("hubLoadingPreview")}</p>}
           {preview?.kind === "html" && <article className="article-content" dir={preview.direction === "rtl" ? "rtl" : "auto"} dangerouslySetInnerHTML={{ __html: preview.content }} />}
