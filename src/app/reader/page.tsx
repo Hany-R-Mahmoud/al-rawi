@@ -184,7 +184,7 @@ export default function Home() {
             if (!disposed && shares > 0) { setInboxView("all"); setDestination("inbox"); }
           } catch { /* Explicit shares stay queued on failure. */ }
           try { await importPendingCaptures(); }
-          catch { /* Passive captures retry on a later event or resume. */ }
+          catch { if (!disposed) window.dispatchEvent(new Event("al-rawi:capture-import-error")); }
         } while (rerun && !disposed);
       } finally { draining = false; }
     };
