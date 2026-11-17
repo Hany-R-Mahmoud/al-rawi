@@ -6,8 +6,8 @@
     "ar": "Al-Rawi"
   },
   "summary": {
-    "en": "A bilingual local-first RSS/Atom and GitHub releases reader with explicit Android Share and scoped, on-device notification capture; Gmail/YouTube arrive only as selected-app notifications.",
-    "ar": "قارئ عربي وإنجليزي لخلاصات RSS وAtom وإصدارات GitHub، مع مشاركة أندرويد والتقاط إشعارات التطبيقات المختارة على الجهاز فقط. جيميل ويوتيوب عن طريق إشعارات التطبيقات فقط."
+    "en": "A bilingual, notification-first private Inbox for user-selected Android app notifications, local pictures, links and notes, with secondary RSS/Atom reading.",
+    "ar": "وارد خاص ثنائي اللغة لالتقاط إشعارات تطبيقات أندرويد المختارة وصورها محليًا، وحفظ الروابط والملاحظات، مع قراءة RSS وAtom كميزة إضافية."
   },
   "status": "showcase",
   "portfolio": true,
@@ -24,6 +24,10 @@
     "IndexedDB"
   ],
   "features": [
+    {
+      "en": "Inbox-first home and Saved filter with captured notification images and Android-only explicit permission",
+      "ar": "الوارد كواجهة رئيسية ومحفوظات كفلتر، مع صور الإشعارات وإذن أندرويد الصريح"
+    },
     {
       "en": "Next.js App Router, TypeScript, Tailwind CSS",
       "ar": "Next.js App Router, TypeScript, Tailwind CSS"
