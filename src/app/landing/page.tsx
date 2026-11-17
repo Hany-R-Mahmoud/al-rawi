@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
-import { ArrowDownRight, ArrowUpRight, Bell, Bookmark, BookOpenText, Check, ChevronDown, Inbox, Languages, Menu, Moon, Rss, Share2, ShieldCheck, Smartphone, Sun, X } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Bell, Check, Languages, Menu, Moon, Rss, Share2, ShieldCheck, Smartphone, Sun, X } from "lucide-react";
 import { AppRouteLink } from "@/components/app-route-link";
 import { BrandLogo } from "@/components/brand-logo";
 import { useLanguage } from "@/components/language-provider";
