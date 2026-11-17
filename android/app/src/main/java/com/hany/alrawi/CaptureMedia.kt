@@ -20,11 +20,11 @@ object CaptureMedia {
     private const val MAX_BASE64_CHARS = 400 * 1024
     private const val RETRY_BINARY_BYTES = 350 * 1024
 
+    @Suppress("DEPRECATION")
     fun from(context: Context, notification: Notification, packageName: String): Encoded? {
         val extras = notification.extras
         val picture: Bitmap? = try {
-            @Suppress("DEPRECATION")
-            (extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE))
+            extras.getParcelable<Bitmap>(Notification.EXTRA_PICTURE)
         } catch (_: Exception) { null }
         if (picture != null) encode(picture, "picture")?.let { return it }
 
@@ -36,8 +36,7 @@ object CaptureMedia {
         val largeIcon = try { notification.largeIcon } catch (_: Exception) { null }
         iconBitmap(context, largeIcon)?.let { encode(it, "largeIcon") }?.let { return it }
         val legacyIcon: Bitmap? = try {
-            @Suppress("DEPRECATION")
-            (extras.getParcelable<Bitmap>(Notification.EXTRA_LARGE_ICON))
+            extras.getParcelable<Bitmap>(Notification.EXTRA_LARGE_ICON)
         } catch (_: Exception) { null }
         legacyIcon?.let { encode(it, "largeIcon") }?.let { return it }
 
