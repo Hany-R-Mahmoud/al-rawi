@@ -22,20 +22,20 @@ export function ReaderPane({ article, loading, onOpenOriginal, onMarkRead }: Rea
   </div>;
 
   return <div className="flex h-full min-h-0 flex-1 flex-col">
-    <header className="shrink-0 border-b border-border bg-paper-raised px-5 py-6 sm:px-8 sm:py-8 xl:px-12">
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-[.16em] text-accent2">{article.feed.title}</p>
-      <h1 className={"max-w-4xl text-2xl font-normal leading-snug tracking-tight text-ink sm:text-3xl xl:text-4xl " + (article.language === "ar" ? "font-arabic" : "font-serif")} dir={article.direction}>{article.title}</h1>
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-faint" dir={article.direction}>
+    <header className="shrink-0 border-b border-border bg-paper-raised px-5 py-3 sm:px-8 sm:py-6 xl:px-12">
+      <p className="mb-1 font-mono text-[10px] uppercase tracking-[.16em] text-accent2">{article.feed.title}</p>
+      <h1 className={"max-w-4xl line-clamp-3 text-xl font-normal leading-snug tracking-tight text-ink sm:text-3xl xl:text-4xl " + (article.language === "ar" ? "font-arabic" : "font-serif")} dir={article.direction}>{article.title}</h1>
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-faint" dir={article.direction}>
         {article.author && <span>{article.author}</span>}
         {article.author && <span aria-hidden>·</span>}
         <time>{formatDate(article.publishedAt, language)}</time>
       </div>
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="default" size="sm" className="min-h-10 gap-2" onClick={onOpenOriginal}><ArrowUpRight className="h-4 w-4" aria-hidden />{t("openOriginal")}</Button>
         <Button variant="outline" size="sm" className="min-h-10 gap-2" onClick={onMarkRead}>{article.isRead ? <MailOpen className="h-4 w-4" aria-hidden /> : <Mail className="h-4 w-4" aria-hidden />}{article.isRead ? t("markUnread") : t("markRead")}</Button>
       </div>
     </header>
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-paper-raised">
+    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-paper-raised pb-[calc(env(safe-area-inset-bottom)+5rem)] lg:pb-0">
       <div className="article-content mx-auto max-w-[740px] px-5 py-8 sm:px-8 sm:py-12 xl:py-14" dir={article.direction} lang={article.language === "ar" ? "ar" : "en"} dangerouslySetInnerHTML={{ __html: article.content || "<p>" + t("noContent") + "</p>" }} />
     </div>
   </div>;
