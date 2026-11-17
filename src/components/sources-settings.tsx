@@ -91,9 +91,9 @@ export function SourcesSettings({ onAddFeed }: { onAddFeed: (url: string, title?
   return (
     <section className="space-y-5">
       <header>
-        <p className="mb-1 font-mono text-[10px] uppercase tracking-[.16em] text-accent2">{t("uiSourcesAndroid")}</p>
+        <p className="mb-1 font-mono text-[10px] uppercase tracking-[.16em] text-accent2">{language === "ar" ? "إشعاراتك وقراءتك" : "Capture & reading"}</p>
         <h3 className={"text-2xl text-ink " + (language === "ar" ? "font-arabic" : "font-serif")}>{t("sourcesTitle")}</h3>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-ink-subtle">{t("sourcesDescription")}</p>
+        <p className="mt-2 max-w-xl text-sm leading-6 text-ink-subtle">{language === "ar" ? "اختار تطبيقات الالتقاط، أو ضيف مصدر قراءة." : "Choose Android apps to capture, or add a reading feed."}</p>
       </header>
       {!native && <section className="rounded-md border border-border bg-paper-raised p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-ink"><Bell className="h-4 w-4 text-accent2" />{t("captureTitle")}</div>
