@@ -51,7 +51,7 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
   };
 
   const exportOpml = () => {
-    const outlines = feeds.map((feed) => '    <outline type="rss" text="' + escapeXml(feed.title) + '" title="' + escapeXml(feed.title) + '" xmlUrl="' + escapeXml(feed.url) + '" htmlUrl="' + escapeXml(feed.url) + '"/>').join("\n");
+    const outlines = feeds.map((feed) => '    <outline type="rss" text="' + escapeXml(feed.title) + '" title="' + escapeXml(feed.title) + '" xmlUrl="' + escapeXml(feed.url) + '" htmlUrl="' + escapeXml(feed.url) + '"' + (feed.category ? ' category="' + escapeXml(feed.category) + '"' : "") + ' />').join("\n");
     const xml = '<?xml version="1.0" encoding="UTF-8"?><opml version="2.0"><head><title>' + escapeXml(t("appName")) + '</title></head><body>\n' + outlines + '\n</body></opml>';
     const link = document.createElement("a");
     const url = URL.createObjectURL(new Blob([xml], { type: "application/xml" }));
@@ -62,8 +62,8 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
   };
 
   const tabs = [
+    { id: "sources" as const, icon: Plug2, label: language === "ar" ? "تطبيقات الالتقاط" : "Captured apps" },
     { id: "appearance" as const, icon: Palette, label: t("uiPreferences") },
-    { id: "sources" as const, icon: Plug2, label: t("sourcesTitle") },
     { id: "account" as const, icon: UserRound, label: language === "ar" ? "الحساب" : "Account" },
   ];
 
@@ -72,7 +72,7 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
       <DialogContent className="max-h-[min(90dvh,850px)] overflow-y-auto border-border bg-paper sm:max-w-[720px]">
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-ink"><Settings2 className="h-5 w-5 text-accent2" aria-hidden />{t("settings")}</DialogTitle>
-          <DialogDescription className="text-sm leading-6 text-ink-subtle">{t("uiSettingsDescription")}</DialogDescription>
+          <DialogDescription className="text-sm leading-6 text-ink-subtle">{language === "ar" ? "اختار تطبيقات الالتقاط واضبط القراءة والمظهر." : "Choose captured apps and adjust reading or appearance."}</DialogDescription>
         </DialogHeader>
         <nav className="flex gap-1 overflow-x-auto border-b border-border pb-3" aria-label={t("settings")}>
           {tabs.map(({ id, icon: Icon, label }) => (
@@ -84,9 +84,9 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
           ))}
         </nav>
         {section === "appearance" && (
-          <div className="space-y-7 pb-3 pt-2">
+          <div className="space-y-5 pb-3 pt-2">
             <section className="space-y-3">
-              <div><h3 className="font-serif text-lg text-ink">{t("uiReadingPreferences")}</h3><p className="text-xs leading-5 text-ink-faint">{t("uiReadingPreferencesHelp")}</p></div>
+              <h3 className="font-serif text-lg text-ink">{t("uiPreferences")}</h3>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2"><Label>{t("language")}</Label><Select value={language} onValueChange={(value) => { if (value === "en" || value === "ar") setLanguage(value); }}><SelectTrigger className="w-full"><span>{language === "ar" ? t("arabic") : t("english")}</span></SelectTrigger><SelectContent><SelectItem value="en">{t("english")}</SelectItem><SelectItem value="ar">{t("arabic")}</SelectItem></SelectContent></Select></div>
                 <div className="space-y-2"><Label>{t("theme")}</Label><Select value={theme} onValueChange={(value) => value && setTheme(value)}><SelectTrigger className="w-full"><span>{theme === "dark" ? t("dark") : theme === "light" ? t("light") : t("system")}</span></SelectTrigger><SelectContent><SelectItem value="light">{t("light")}</SelectItem><SelectItem value="dark">{t("dark")}</SelectItem><SelectItem value="system">{t("system")}</SelectItem></SelectContent></Select></div>
@@ -101,7 +101,7 @@ export function SettingsDialog({ open, onOpenChange, section, onSectionChange, f
               </div>
               {message && <p className="text-xs text-ink-subtle" role="status">{message}</p>}
             </section>
-            <section className="border-t border-border pt-6">
+            <section className="hidden border-t border-border pt-6 lg:block">
               <h3 className="font-serif text-lg text-ink">{t("keyboardShortcuts")}</h3>
               <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 rounded-md bg-muted/45 p-4 text-xs text-ink-subtle">
                 <span>{t("nextPrevious")}</span><kbd className="justify-self-end font-mono">J / K</kbd>
