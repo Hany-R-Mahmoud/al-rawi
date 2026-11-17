@@ -55,12 +55,11 @@ contract, cron worker, or server-side feed store. The optional Al-Rawi web accou
 manual **RSS-only** backup integration is on `main`, with Google OAuth hosted by the app. Captured notifications and pictures are never included in RSS backup.
 The older implementation brief in
 [`064-rss-reader-web.md`](064-rss-reader-web.md) describes capabilities that are
-not present in the current source, including a read-later queue and IndexedDB
-offline cache.
+not part of the current RSS architecture, including a separate article read-later queue and an IndexedDB RSS offline cache. The Inbox has its own Saved filter.
 
-## Content Hub: optional Android notification capture
+## Inbox: Android notification capture
 
-The Android test APK can retain notifications from owner-chosen apps after they are cleared from the shade. YouTube and Gmail are selected by default; Android Notification Access must be granted explicitly and apps can be switched on or off in Sources. The native SQLite queue survives a closed WebView and imports into the same IndexedDB Inbox on app open; its saved, done, read and archive controls are unchanged. Notification content stays on-device and is not logged or uploaded. Web/PWA never requests Android notification access. Explicit Share → Al-Rawi and RSS fetching remain separate.
+The Android test APK can retain notifications from owner-chosen apps after they are cleared from the shade. YouTube and Gmail are selected by default; Android Notification Access must be granted explicitly and apps can be switched on or off in Settings → Captured apps. The native SQLite queue survives a closed WebView and imports into the same IndexedDB Inbox on app open; its saved, done, read and archive controls are unchanged. Notification content stays on-device and is not logged or uploaded. Web/PWA never requests Android notification access. Explicit Share → Al-Rawi and RSS fetching remain separate.
 
 ## Privacy and freshness
 
