@@ -103,3 +103,12 @@ The Impeccable CLI was installed in the local dev environment and used for a pag
 Sources adds one native-only permission and app-switch section. Inbox adds one skippable prompt and notification cards following the existing paper-and-ink layout. The existing mobile bottom navigation, typography, dark mode and spacing remain unchanged. New cards use the existing `Bell` icon from Lucide; no new images or typefaces are introduced.
 
 Verified theme source numbers from `src/app/globals.css` (no changes): light `paper hsl(40 30% 97%)`, `paper-raised hsl(0 0% 100%)`, `ink hsl(20 14% 8%)`, `ink-subtle hsl(20 8% 30%)`, `ink-faint hsl(20 6% 42%)`, `accent2 hsl(15 80% 42%)`; dark `paper hsl(20 8% 7%)`, `paper-raised hsl(20 8% 11%)`, `ink hsl(40 20% 92%)`, `ink-subtle hsl(40 10% 72%)`, `ink-faint hsl(40 6% 50%)`, `accent2 hsl(18 90% 62%)`; `radius 0.625rem`. No token numbers were re-derived and no token-versus-Impeccable conflict was applied. Contrast, 390px RTL, 200% text and tap-target checks remain unverified without a browser/emulator.
+
+## Notification-first UI revision — 2026-11-17
+
+- Product entrance and primary navigation: Inbox, Saved, Reading, Settings (captured apps first). Saved filters the existing Inbox; it does not replicate data.
+- Continue the warm Paper & Ink semantic palette; no new colors, fonts, icon sets or replacement photography. The photo assets stay unchanged.
+- Mobile root uses one bounded 100dvh shell; the Inbox list owns vertical scroll, with compact mobile header, single-line horizontally scrolling filters, sticky date headers, dense cards, 40+px actions and bottom-nav clearance. Reading/feeds retain independent scroll regions.
+- Conditional local images: genuine notification BigPicture 64px/80px thumbnails or source icons; the detail picture is a bounded hero; failed media falls back to Lucide without visual fabrication.
+- Landing primary story: selected-app notifications kept on device; web/PWA cannot capture, and RSS remains a Reading feature. English header and actions must fit 320–390px without horizontal overflow.
+- Design QA still required before release: mobile 320, 360, 390, 430; tablet 768; desktop 1280; both AR/EN; light/dark; 200% text; Android WebView and physical device.
