@@ -27,7 +27,7 @@ export function useKeyboardNav(config: KeyboardNavConfig) {
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (!enabled) return;
+      if (!enabled || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.isComposing) return;
 
       // Don't trigger when typing in input fields
       const target = e.target as HTMLElement;
@@ -43,31 +43,37 @@ export function useKeyboardNav(config: KeyboardNavConfig) {
       // Vim-style navigation
       switch (e.key.toLowerCase()) {
         case "j":
+          if (!onNext) break;
           e.preventDefault();
-          onNext?.();
+          onNext();
           break;
         case "k":
+          if (!onPrev) break;
           e.preventDefault();
-          onPrev?.();
+          onPrev();
           break;
         case "o":
+          if (!onOpen) break;
           e.preventDefault();
-          onOpen?.();
+          onOpen();
           break;
         case "s":
+          if (!onSave) break;
           e.preventDefault();
-          onSave?.();
+          onSave();
           break;
         case "m":
+          if (!onMarkRead) break;
           e.preventDefault();
-          onMarkRead?.();
+          onMarkRead();
           break;
         case "/":
+          if (!onSearch) break;
           e.preventDefault();
-          onSearch?.();
+          onSearch();
           break;
         case "r":
-          if (!e.ctrlKey && !e.metaKey) {
+          if (onRefresh) {
             e.preventDefault();
             onRefresh?.();
           }
