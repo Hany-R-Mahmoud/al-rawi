@@ -13,18 +13,18 @@ import type { StoredFeed } from "@/lib/reader-types";
 type Props = { feeds: StoredFeed[]; onImportFeeds: (feeds: StoredFeed[]) => number };
 const copy = {
   en: {
-    title: "Your Al-Rawi account", native: "Android account sign-in is not ready yet. Local reading and the separately authorized Gmail/YouTube sources continue working.",
+    title: "Your Al-Rawi account", native: "Android account sign-in is unavailable. Notification capture works locally with explicit Android permission and selected apps; no Google account connection is needed.",
     guest: "Sign in with Google on the web to optionally back up RSS subscriptions and reading states.",
     signIn: "Sign in with Google", signOut: "Sign out", backUp: "Back up RSS",
-    restore: "Restore RSS", note: "Nothing syncs automatically. This saves RSS feeds and up to 200 recent RSS reading states only. Gmail, YouTube, shared notes and Google tokens stay on this device.",
+    restore: "Restore RSS", note: "Nothing syncs automatically. This saves RSS feeds and up to 200 recent RSS reading states only. Captured notifications, pictures and shared notes are not part of this backup. No Google-source tokens are held.",
     successSave: "Your RSS backup was saved.", successRestore: "RSS data restored and merged with local content.",
     failure: "Could not reach your cloud account. Check your session or server configuration.",
   },
   ar: {
-    title: "حساب الراوي", native: "تسجيل حساب الراوي على Android لسه مش جاهز. القراءة المحلية ومصادر Gmail وYouTube المستقلة هتفضل شغالة.",
+    title: "حساب الراوي", native: "تسجيل حساب الراوي على Android لسه مش جاهز. القراءة والتقاط الإشعارات محليًا بإذن أندرويد والتطبيقات اللي بتختارها، من غير ربط حساب Google.",
     guest: "سجّل دخولك من الويب علشان تحفظ اشتراكات RSS وحالة القراءة باختيارك.",
     signIn: "الدخول باستخدام Google", signOut: "تسجيل الخروج", backUp: "احفظ RSS",
-    restore: "استرجع RSS", note: "مفيش رفع تلقائي. الحفظ فقط لاشتراكات RSS وآخر ٢٠٠ حالة قراءة؛ Gmail وYouTube والملاحظات والـ Tokens بتفضل على جهازك.",
+    restore: "استرجع RSS", note: "مفيش رفع تلقائي. الحفظ فقط لاشتراكات RSS وآخر ٢٠٠ حالة قراءة؛ الإشعارات وصورها والملاحظات مش بتدخل النسخة الاحتياطية، ومفيش tokens لمصادر Google.",
     successSave: "اتحفظت نسخة RSS على حسابك.", successRestore: "تم استرجاع ودمج بيانات RSS المحلية.",
     failure: "تعذر الاتصال بالحساب. راجع تسجيل الدخول وإعدادات الخادم.",
   },
