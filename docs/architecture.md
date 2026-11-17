@@ -2,6 +2,11 @@
 
 ## Summary
 
+**Current UX:** `/reader` opens Inbox by default and offers Saved (same IndexedDB store), Reading (RSS three-pane), and Settings. Native normal root entry redirects to the exported workspace route. Passive notification import never changes the active destination. Sources/capture app choices are first in Settings. No Google-source account connection exists.
+
+**Media path:** already-eligible Android notification → `CaptureMedia` (bounded JPEG/PNG Base64, optional) → private SQLite `media_kind`/`media_b64` nullable columns (idempotent v1 upgrade) → batches of 10 via the Capacitor bridge → IndexedDB v3 optional `InboxItem.media` → card/detail. The importer commits before acknowledging native rows and retries once without media if a full write fails. The Inbox and RSS-only backup use bounded cursor scans. Media is never included in RSS backup or automatically uploaded.
+
+
 Al-Rawi is a single Next.js App Router application. The landing and reader
 surfaces are client components. The reader stores only feed subscription
 metadata locally, then calls two Node.js route handlers to fetch public feed XML
@@ -15,7 +20,7 @@ reader page’s React state.
 |---|---|
 | `src/app/page.tsx` | Re-exports the landing page as the root route. |
 | `src/app/landing/page.tsx` | Bilingual landing experience. |
-| `src/app/reader/page.tsx` | Reader orchestration and in-memory state. |
+| `src/app/reader/page.tsx` | Inbox-first navigation and Reader orchestration and in-memory state. |
 | `src/components/` | Reader panes, dialogs, providers, and UI primitives. |
 | `src/hooks/use-keyboard-nav.ts` | Global J, K, O, M, `/`, and R reader shortcuts outside editable controls. |
 | `src/lib/local-reader.ts` | Feed subscription serialization and validation. |
