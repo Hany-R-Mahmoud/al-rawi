@@ -4,6 +4,10 @@ import android.app.Notification
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.SharedPreferences
+import android.graphics.Bitmap
+import android.database.sqlite.SQLiteDatabase
+import android.util.Base64
+import kotlin.random.Random
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
@@ -121,4 +125,59 @@ class NotificationCaptureTest {
             assertEquals(0, db.list(500).length())
         }
     }
+    @Test fun pictureEncodingIsBoundedAndTextSurvivesMissingMedia() {
+        val bitmap = Bitmap.createBitmap(1400, 1200, Bitmap.Config.ARGB_8888)
+        val pixels = IntArray(1400 * 1200)
+        val random = Random(62)
+        for (i in pixels.indices) pixels[i] = (0xff shl 24) or random.nextInt(0x1000000)
+        bitmap.setPixels(pixels, 0, 1400, 0, 0, 1400, 1200)
+        val image = CaptureMedia.encode(bitmap, "picture")
+        if (image != null) {
+            assertTrue(image.base64.length <= 400 * 1024)
+            val raw = Base64.decode(image.base64, Base64.NO_WRAP)
+            val options = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeByteArray(raw, 0, raw.size, options)
+            assertTrue(maxOf(options.outWidth, options.outHeight) <= 720)
+        }
+        reset()
+        NotificationDb(isolated, "notification_capture_test.db").use { db ->
+            assertTrue(db.save(isolated, "com.google.android.gm", "no-picture", 0,
+                "Gmail", "Text stays", "No picture", 44L, null))
+            assertEquals("Text stays", db.list(10).getJSONObject(0).getString("title"))
+            assertFalse(db.list(10).getJSONObject(0).has("mediaB64"))
+        }
+    }
+
+    @Test fun existingCapturedTableGetsMediaColumnsWithoutWipingRows() {
+        reset()
+        base.openOrCreateDatabase("notification_capture_test.db", Context.MODE_PRIVATE, null).use { old ->
+            old.execSQL("""CREATE TABLE captured_notifications (
+                id TEXT PRIMARY KEY, package_name TEXT NOT NULL, app_label TEXT NOT NULL,
+                title TEXT NOT NULL, text TEXT NOT NULL, url TEXT NOT NULL DEFAULT '',
+                posted_at INTEGER NOT NULL, imported INTEGER NOT NULL DEFAULT 0)""")
+            old.execSQL("""INSERT INTO captured_notifications
+                (id,package_name,app_label,title,text,url,posted_at,imported)
+                VALUES ('notification:old','com.google.android.gm','Gmail','Old','Still here','',3,0)""")
+            old.version = 1
+        }
+        NotificationDb(isolated, "notification_capture_test.db").use { db ->
+            assertEquals("Old", db.list(10).getJSONObject(0).getString("title"))
+            db.readableDatabase.rawQuery("PRAGMA table_info(captured_notifications)", null).use { cursor ->
+                val columnNames = mutableSetOf<String>()
+                val name = cursor.getColumnIndexOrThrow("name")
+                while (cursor.moveToNext()) columnNames.add(cursor.getString(name))
+                assertTrue("media_kind" in columnNames)
+                assertTrue("media_b64" in columnNames)
+            }
+            val icon = CaptureMedia.Encoded("appIcon", Base64.encodeToString(byteArrayOf(1, 2, 3), Base64.NO_WRAP))
+            assertTrue(db.save(isolated, "com.google.android.gm", "icon-new", 0,
+                "Gmail", "With icon", "Body", 10L, icon))
+            assertTrue(db.list(10).getJSONObject(1).has("mediaB64"))
+            // Re-opening the version-one DB is idempotent and retains old rows.
+        }
+        NotificationDb(isolated, "notification_capture_test.db").use { reopened ->
+            assertEquals(2, reopened.list(10).length())
+        }
+    }
+
 }
