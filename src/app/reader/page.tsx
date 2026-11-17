@@ -224,7 +224,7 @@ export default function Home() {
 
   useEffect(() => {
     if (destination !== "reading" || readingLoaded) return;
-    setReadingLoaded(true);
+    queueMicrotask(() => setReadingLoaded(true));
     void refreshFeeds(feedsRef.current);
   }, [destination, readingLoaded, refreshFeeds]);
 
@@ -362,7 +362,7 @@ export default function Home() {
       <section className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
         <div className={`min-w-0 flex-1 flex-col lg:flex lg:w-[380px] lg:flex-none ${language === "ar" ? "border-l border-border" : "border-r border-border"} ${selectedArticle ? "hidden" : "flex"}`}>
           <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-paper/95 px-3 py-2.5 backdrop-blur-md">
-            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setShowMobileNav(true)} aria-label={t("openFeeds")}><Menu className="h-4 w-4" /></Button><BrandLogo className="h-14 w-14 lg:hidden" /><span className="hidden font-serif text-lg text-ink lg:inline">{t("articles")}</span><Button variant="outline" size="sm" className="gap-1 lg:hidden" onClick={() => setDestination("inbox")}><Inbox className="h-4 w-4" />{t("inbox")}</Button></div>
+            <div className="flex items-center gap-2"><Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setShowMobileNav(true)} aria-label={t("openFeeds")}><Menu className="h-4 w-4" /></Button><BrandLogo className="h-14 w-14 lg:hidden" /><span className="hidden font-serif text-lg text-ink lg:inline">{t("articles")}</span><Button variant="outline" size="sm" className="gap-1 lg:hidden" onClick={() => { setInboxView("all"); setDestination("inbox"); }}><Inbox className="h-4 w-4" />{t("inbox")}</Button></div>
             <div className="flex items-center gap-0.5"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setShowSearch((current) => !current)} aria-label={t("search")}><Search className="h-4 w-4" /></Button><div className="hidden items-center gap-0.5 sm:flex"><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} aria-label={t("toggleTheme")}>{themeReady && resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</Button><PwaInstallMenuAction /><Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openSettings("appearance")} aria-label={t("settings")}><Settings2 className="h-4 w-4" /></Button></div></div>
           </header>
           {showSearch && <div className="border-b border-border px-3 py-2"><div className="relative"><Search className={`absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-faint ${language === "ar" ? "right-2.5" : "left-2.5"}`} /><Input autoFocus placeholder={t("searchPlaceholder")} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className={`h-8 text-xs ${language === "ar" ? "pr-8 pl-2.5" : "pl-8 pr-2.5"}`} /><button type="button" className={`absolute top-1/2 -translate-y-1/2 ${language === "ar" ? "left-2" : "right-2"}`} onClick={() => { setSearchQuery(""); setShowSearch(false); }} aria-label={t("closeSearch")}><X className="h-3 w-3 text-ink-faint" /></button></div></div>}
@@ -384,7 +384,7 @@ export default function Home() {
         activeSection={mobileActiveSection}
         onOpenInbox={() => { setInboxView("all"); setDestination("inbox"); setShowMobileNav(false); }}
         onOpenSaved={() => { setInboxView("saved"); setDestination("saved"); setShowMobileNav(false); }}
-        onOpenReading={() => { setDestination("reading"); setSelectedArticleId(null); setShowMobileNav(false); }}
+        onOpenReading={() => { setDestination("reading"); setShowMobileNav(false); }}
         onOpenSettings={() => { setShowMobileNav(false); openSettings("sources"); }}
       />
       {refreshing && <div className="pointer-events-none fixed bottom-4 left-1/2 z-30 -translate-x-1/2 rounded-full border border-border bg-paper-raised px-3 py-1.5 text-xs text-ink-subtle shadow-sm"><Rss className="me-1 inline h-3 w-3 animate-pulse" />{t("refreshingFreshArticles")}</div>}
