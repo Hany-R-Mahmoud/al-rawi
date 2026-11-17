@@ -86,7 +86,7 @@ export function importPendingCaptures(): Promise<number> {
           await upsertInboxItems(mapped);
         } catch {
           // A single quota/storage retry may discard optional media, never text.
-          await upsertInboxItems(mapped.map(({ media: _media, ...item }) => item), { dropMedia: true });
+          await upsertInboxItems(mapped, { dropMedia: true });
         }
         const { remaining } = await capture.ackImported({ ids: mapped.map((item) => item.id) });
         total += mapped.length;
