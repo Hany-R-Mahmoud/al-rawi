@@ -135,7 +135,6 @@ export default function Home() {
 
       const successes = results.filter((item): item is { source: ReaderFeed; result: { feed: ReaderFeed; articles: Article[] } } => "result" in item);
       const failures = results.filter((item): item is { source: ReaderFeed; error: string } => "error" in item);
-      const nextArticles = successes.flatMap((item) => item.result.articles);
       // Keep the reader and inbox reading states aligned across refreshes.
       let hydrated = nextArticles;
       try {
