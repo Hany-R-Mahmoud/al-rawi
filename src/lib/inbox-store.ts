@@ -173,7 +173,7 @@ export async function listInbox(view: InboxView, query: string, page = 1): Promi
 /** Explicit cloud backup only selects RSS items and strips optional media. */
 export async function recentRssBackupItems(): Promise<InboxItem[]> {
   const result = await selectRecent(200, (entry) => entry.source === "rss");
-  return result.items.map(({ media: _media, ...item }) => item);
+  return result.items.map((item) => { const copy = { ...item }; delete copy.media; return copy; });
 }
 
 async function patchInbox(id: string, patch: Partial<InboxItem>): Promise<void> {
